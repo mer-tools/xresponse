@@ -1,9 +1,9 @@
-xresponse (0.3.2-1osso24+0m6) unstable; urgency=low
+xresponse (0.3.2-1osso25) unstable; urgency=low
 
-  * This entry has been added by BIFH queue processor
-    version has been changed to 0.3.2-1osso24+0m6
+  * Fixes: NB#194587 - xresponse aborts to Bad Damage error.
+  * Fixes: NB#194312 - xresponse: add pkg-config to build-deps.
 
- -- Tommi Rantala <ext-tommi.1.rantala@nokia.com>  Fri, 10 Sep 2010 16:09:29 +0300
+ -- Tommi Rantala <ext-tommi.1.rantala@nokia.com>  Mon, 27 Sep 2010 15:00:35 +0300
 
 xresponse (0.3.2-1osso24) unstable; urgency=low
 
