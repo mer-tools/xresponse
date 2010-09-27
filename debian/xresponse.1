@@ -1,0 +1,170 @@
+.TH XRESPONSE 1
+.\" NAME should be all caps, SECTION should be 1-8, maybe w/ subsection
+.\" other parms are allowed: see man(7), man(1)
+.SH NAME
+xresponse \- a simple tool for measuring UI response times to a
+full mouse click event and synthesizing key events.
+.SH SYNOPSIS
+.B xresponse
+.I "[OPTION]..."
+.SH "DESCRIPTION"
+This manual page documents briefly the
+.BR xresponse
+command.
+This manual page was written for the Debian GNU/Linux distribution
+because the original program does not have a manual page.
+.PP
+.B xresponse
+is a simple tool for measuring UI response times to a
+full mouse click event. It requires the Xtest, to 'fake' the mouse
+and key events, and XDamage, to report areas of the display that have changed.
+.SH OPTIONS
+
+Commands are any combination of;
+.TP
+.B \-c, \-\-click \fIXxY[,delay]\fP
+Send click to given coordinates and wait for damage response. The optional delay is in milliseconds. If not specified, there is no delay at all between the press and release events.
+.TP
+.B \-d, \-\-drag \fIdelay|XxY, delay|XxY, delay|XxY, delay|XxY, ...XxY\fP
+Simulate mouse drag and collect damage. Optionally specify delay between the next drag coordinates in milliseconds.
+Note that the delay option must always be followed by coordinates.
+.TP
+.B \-k, \-\-key \fIkeysym[,delay]\fP
+Simulate pressing and releasing a key. The optional delay is in milliseconds. If not specified, a default of 100 ms is used.
+.TP
+.B \-m, \-\-monitor \fIWIDTHxHEIGHT+X+Y\fP
+Watch area for damage (default fullscreen)
+.TP
+.B \-w, \-\-wait \fIseconds\fP
+Max time to wait for damage, set to 0 to monitor for ever (default 5 secs). This affects the duration of damage monitoring after every subsequent command (unless later reset again with another invocation(s) of -w).
+.TP
+.B \-o, \-\-logfile \fIfile\fP
+Use \fIfile\fP as the logfile. When used, it should be the first option.
+.TP
+.B \-s, \-\-stamp \fIstring\fP
+Write \fIstring\fP to logfile.
+.TP
+.B \-t, \-\-type \fIstring\fP
+Simulate typing a string by synthesizing key events.
+.TP
+.B \-i, \-\-inspect
+Just display damage events.
+.B -\id, \-\-id \fIwindow id\fP
+Select window id for damage monitoring (if omitted, root window is monitored. Id 0 will equal root window).
+.TP
+.B \-v, \-\-verbose
+Output response to all command line options
+.TP
+.B \-l, \-\-level \fIraw|delta|box|nonempty\fP
+Set the damage monitoring level (\fIbox\fP being the default one).
+.TP
+.B \-a, \-\-application \fIname|'*'\fP
+Monitor all windows associated with the application \fIname\fP. This includes also newly created windows
+associated with the application \fIname\fP. \fI'*'\fP will force xresponse to monitor all applications.
+.TP
+.B \-b, \-\-break \fI<msec>|damage[,<number>]\fP
+Abort waiting if no events are received during the \fI<msec>\fP seconds, or on the \fI<number>\fP damage event 
+if the \fIdamage\fP parameter is specified. Note that local time is used to measure break timeouts instead of
+server time.
+.TP
+.B \-x, \-\-exclude \fIXxY|S[,less|greater]\fP
+Filter out damage events based on their dimensions \fIXxY\fP or size \fIS\fP. The rules are: 
+.br
+    \fIless\fP (default) - filter out events with damage area less or equal to the specified.
+.br		
+    \fIgreater\fP - filter out events with damage area greater than specified.
+.TP
+.B \-u, \-\-user
+Monitor user input (keyboard/mouse) events. Currently only button and key presses are supported.
+Xresponse reports clicked application name only for applications that are monitored (specified with -a option).
+.TP
+.B \-r, \-\-response \fI<msec>[,verbose]\fP
+Enables ui response monitoring mode. In this mode xresponse reports the first and last damage events
+of screen and applications after user releases 'mouse button'. The time to wait for the last event after
+user action is specified in milliseconds. The standard damage reporting is suppressed unless verbose
+option is specified.
+.TP
+
+.SH EXAMPLES
+
+Click mouse at 100,100 and collect max 5 seconds of damage events;
+
+	xresponse -c 100x100
+
+Click and hold mouse at 100,100, then move to 101,100, then 105,100, then 110,100 and finally release mouse. Damage is collected between each point with max 5 seconds.
+
+	xresponse -d 100x100,101x100,105x100,110x100
+
+Click the mouse at 100x100, 100x150 and 200x200 collecting a max one second of damage for each only in 240x320+0+0;
+
+	xresponse -w 1 -m 240x320+0+0 -c 100x100
+.br
+	xresponse -w 1 -m 240x320+0+0 -c 100x150 
+.br	
+	xresponse -w 1 -m 240x320+0+0 -c 200x200
+
+Monitor all damage for ever;
+
+	xresponse -w 0 
+
+Monitor only top corner of screen for 10 seconds, then send a click collecting 5 seconds of damage
+
+	xresponse -w 10 -m 240x320+0+0 
+.br	
+	xresponse -w 5 -m 240x320+0+0 -c 100x100
+
+Simulate pressing the F4 key with half a second between the keypress and
+-release;
+
+	xresponse -k F4,500
+
+Simulate pressing keys 'q', 'w' and 'e' with default press/release delay. Additionally, duration of damage collection after first two keypresses has been adjusted to ten seconds. After this, the damage collection period is readjusted to one second prior to simulating the rest of the keypresses.
+
+	xresponse -w 10 -k q
+.br	
+	xresponse -w 1 -k w
+.br	
+	xresponse -w 1 -k e
+
+Simulate typing the string 'Testing';
+
+	xresponse -t Testing
+
+Monitor only the the topmost window damage events;
+
+	xresponse -id $(xprop -root | grep '^_NET_ACTIVE_WINDOW' | cut -d '#' -f 2) -w 0 -i
+
+Monitor mycalendar application and stop when no damage events are received for 2 seconds;
+
+	xresponse -a mycalendar -w 0 -b 2000
+
+Monitor the mynotepad application, filtering out cursor blinking events;
+
+	xresponse -a mynotepad -w 0 -x 4x30
+
+Monitor the application response times;
+
+	xresponse -a \\* -w 0 -r 5000
+
+
+.SH TIPS
+
+You can use
+.BR xmag (1)
+to figure out screen coordinates for window clicks.
+.PP
+You can use 
+.BR xev (1)
+to figure out what keysym is needed to simulate a
+press of certain key (note that for most alphanumeric characters,
+the keysym is just the same one-character symbol, e.g. 'a' key without
+modifiers has keysym of 'a').
+.PP
+Monitoring the damage occurring in a toplevel window can be useful for checking whether a compositing window manager causes significant additional update latency or not.
+.SH AUTHOR
+
+Xresponse is authored by Matthew Allum and Ross Burton.
+
+.SH "SEE ALSO"
+.BR xmag (1)
+.BR xev (1)

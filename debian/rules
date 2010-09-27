@@ -1,0 +1,64 @@
+#!/usr/bin/make -f
+# Made with the aid of debmake, by Christoph Lameter,
+# based on the sample debian/rules file for GNU hello by Ian Jackson.
+
+package=xresponse
+
+configure:
+	./autogen.sh
+
+config.status: configure
+	dh_testdir
+	./configure --prefix=/usr
+
+build: build-stamp
+
+build-stamp: config.status
+	dh_testdir
+
+  # Add here commands to compile the package.
+	$(MAKE)
+	touch build-stamp
+
+clean:
+	dh_testdir
+	rm -f build
+	rm -f build-stamp
+
+  # Add here commands to clean up after the build process.
+	#
+	-$(MAKE) clean
+	-$(MAKE) distclean
+
+	rm -f `find . -name "*~"`
+	rm -rf debian/tmp debian/files* core debian/substvars
+
+binary-indep: build install
+
+binary-arch: build install
+	dh_testdir
+	rm -rf debian/tmp
+	install -d debian/tmp
+	cd debian/tmp && install -d `cat ../dirs`
+	$(MAKE) install DESTDIR=`pwd`/debian/tmp
+# Must have debmake installed for this to work. Otherwise please copy
+# /usr/bin/debstd into the debian directory and change debstd to debian/debstd
+	debstd ChangeLog NEWS README 
+	dpkg-gencontrol -isp
+	chown -R root:root debian/tmp
+	chmod -R go=rX debian/tmp
+	dpkg --build debian/tmp ..
+	dh_installman debian/xresponse.1
+
+binary: binary-indep binary-arch
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+
+  # Add here commands to install the package into debian/tmp.
+  $(MAKE) install DESTDIR=$(CURDIR)/debian/tmp
+
+.PHONY: binary binary-arch binary-indep clean checkroot
