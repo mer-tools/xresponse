@@ -1,7 +1,7 @@
 AC_PREREQ(2.53)
 
-AC_INIT([xresponse], 0.3.2, [ross@o-hand.com])
-AC_CONFIG_SRCDIR([xresponse.c])
+AC_INIT([xresponse], 0.3.2, [eero.tamminen@nokia.com])
+AC_CONFIG_SRCDIR([src/xresponse.c])
 
 AM_INIT_AUTOMAKE()
 
@@ -25,7 +25,8 @@ fi
 
 AC_SUBST(GCC_FLAGS)
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile
+				src/Makefile])
 
 AC_OUTPUT
 

@@ -5,7 +5,7 @@
 #define PACKAGE "xresponse"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "ross@o-hand.com"
+#define PACKAGE_BUGREPORT "eero.tamminen@nokia.com"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "xresponse"
