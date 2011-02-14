@@ -77,8 +77,7 @@ static scheduler_t scheduler = {
 /**
  * Emulates user input event.
  *
- * @param[in] dpy     the display connection.
- * @param event[in]   the event to simulate.
+ * @param[in] event   the event to emulate.
  * @return
  */
 static void fake_event(event_t* event)

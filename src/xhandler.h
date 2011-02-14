@@ -29,6 +29,14 @@
  * OF THIS SOFTWARE.
  */
 
+/**
+ * @file xhandler.h
+ * X event handler.
+ *
+ * xhandler.c|h provides X display connection initialization, setup, error
+ * handling and utility functionality.
+ */
+
 #ifndef _XHANDLER_H_
 #define _XHANDLER_H_
 

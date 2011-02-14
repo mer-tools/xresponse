@@ -29,6 +29,11 @@
  * OF THIS SOFTWARE.
  */
 
+/**
+ * @file xresponse.h
+ * Provides command line option parsing and the main damage event processing loop.
+ */
+
 #ifndef _XRESPONSE_H_
 #define _XRESPONSE_H_
 

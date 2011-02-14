@@ -29,6 +29,14 @@
  * OF THIS SOFTWARE.
  */
 
+/**
+ * @file xinput.h
+ * User input monitoring and application response measurement support.
+ *
+ * xinput.c|h provides user input monitoring initialization/process, as well
+ * as application response monitoring initialization based on user input.
+ */
+
 #ifndef XINPUT_H
 #define XINPUT_H
 
@@ -53,6 +61,9 @@
 #include <X11/extensions/Xdamage.h>
 #include <X11/extensions/record.h>
 
+/**
+ * User input monitoring data.
+ */
 typedef struct {
 	Display* display;
 	XRecordContext context;

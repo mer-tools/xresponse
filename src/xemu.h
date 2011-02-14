@@ -29,6 +29,15 @@
  * OF THIS SOFTWARE.
  */
 
+/**
+ * @file xemu.h
+ * X user input emulation support.
+ *
+ * xemu.c|h provides a frontend for the event scheduler which translates
+ * Button clicks, drags, key presses and text inputs ito actual X events
+ * that are added to the scheduler.
+ */
+
 #ifndef _XEMU_H_
 #define _XEMU_H_
 

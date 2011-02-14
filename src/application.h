@@ -29,6 +29,14 @@
  * OF THIS SOFTWARE.
  */
 
+/**
+ * @file application.h
+ * Application damage monitoring and user action response tracking.
+ *
+ * application.c|h files provides 'to-be-monitored' application list and response
+ * measurement management.
+ */
+
 #ifndef _APPLICATION_H_
 #define _APPLICATION_H_
 
@@ -44,25 +52,30 @@
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/Xdamage.h>
 #include <X11/extensions/record.h>
+
 /**
- * Application data structure
+ * Application data structure.
  */
 typedef struct application_t {
 	/* double linked list support */
 	dlist_node_t _node;
-	/* name of the application resource(binary) file */
+
+	/* the application resource name (binary file) */
 	char* name;
+
 	/* the first damage event after user action */
 	XDamageNotifyEvent first_damage_event;
+
 	/* the last damage event after user action */
 	XDamageNotifyEvent last_damage_event;
+
 	/* reference counter */
 	int ref;
 } application_t;
 
 
 /**
- * Application response data.
+ * Response data structure.
  */
 typedef struct {
 	/* the last user action in user friendly format */
@@ -80,37 +93,16 @@ typedef struct {
 	application_t* application;
 } response_t;
 
+/* the response data */
 extern response_t response;
 
-/**
- * Resets all application damage events.
- */
-void application_reset_all_events();
 
 /**
- * Adds a new application to the monitored application list.
- *
- * When a new window is created xresponse checks the monitored application list
- * if the damage events of the created window must be monitored.
- * @param name[in]          the application name.
- * @return                  the application object.
- */
-application_t* application_add(const char* name);
-
-
-/**
- * Searches application list for the specified application.
- *
- * This function will increase application reference counter before returning it.
- * @param name[in]  the application name.
- * @return 			reference to the located application or NULL otherwise.
- */
-application_t* application_find(const char* name);
-
-/**
- * Adds application to monitored applications list if necessary and increments its
+ * Adds an application to monitored applications list if necessary and increments its
  * reference counter.
  *
+ * Monitoring an application causes xresponse to watch damage for all application's
+ * windows.
  * @param name[in]    the application name.
  * @return            a reference to the added application.
  */
@@ -129,19 +121,23 @@ void application_fini();
 
 
 /**
- * Starts monitoring all windows associated to monitored applications.
+ * Starts to monitor all windows associated to the monitored applications.
  */
 void application_start_monitor();
 
 
 /**
  * Forces all applications to be monitored.
+ *
+ * By default only applications that are explicitly added to to-be-monitored
+ * list are monitored. Enabling monitor_all flag causes all currently running
+ * and future applications to be monitored.
  */
 void application_set_monitor_all(bool value);
 
 
 /**
- * Reports application response times
+ * Reports application response times collected from the last user input.
  */
 void application_response_report();
 
@@ -150,7 +146,7 @@ void application_response_report();
  * Stores last user action description.
  *
  * The last user action description is used for reporting application response times
- * @param format[in]
+ * @param format[in]   the format string (see printf);
  * @param ...
  */
 void application_set_user_action(const char* format, ...);
@@ -166,7 +162,7 @@ void application_response_start(application_t* app);
 
 
 /**
- * Registers application damage event.
+ * Registers application damage event in response monitoring mode.
  *
  * @param[in] app  the application the damage occured in.
  * @param[in] dev  the damage event.
@@ -187,9 +183,14 @@ void application_monitor_screen();
 bool application_empty();
 
 /**
- * Retrieves application for the monitored resource.
+ * Attempts to monitor the specified application.
  *
- * @param[in] resource   the resource.
+ * The application is monitored either when it's on to-be-monitored list or
+ * when monitor_all flag is enabled. In the second case the application is
+ * placed on the to-be-monitored list during its lifetime.
+ * The found/added application is returned. Otherwise (if the application
+ * should not be monitored) a NULL value is returned.
+ * @param[in] resource   the application name.
  * @return               the application or NULL, if the resource is not monitored.
  */
 application_t* application_try_monitor(const char* resource);

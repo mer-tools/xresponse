@@ -29,13 +29,32 @@
  * OF THIS SOFTWARE.
  */
 
+/**
+ * @file scheduler.h
+ * Event scheduler for user input event emulation.
+ *
+ * The 'faked' user input events are stored in queue and are fired
+ * when the current timestamp is greater than the last event timestamp plus
+ * the next event delay. This allows to emulate any user action sequence with
+ * custom delays between input events.
+ */
+
 #ifndef _SCHEDULER_H_
 #define _SCHEDULER_H_
 
 #include "sp-rtrace/dlist.h"
 
-enum {
-	SCHEDULER_EVENT_NONE = 0, SCHEDULER_EVENT_BUTTON, SCHEDULER_EVENT_KEY, SCHEDULER_EVENT_MOTION
+/**
+ * The input event types.
+ */
+enum scheduler_event_type_t {
+	SCHEDULER_EVENT_NONE = 0,
+	/* button press/release */
+	SCHEDULER_EVENT_BUTTON,
+	/* key press/release */
+	SCHEDULER_EVENT_KEY,
+	/* cursor movement */
+	SCHEDULER_EVENT_MOTION
 };
 
 /**
@@ -46,11 +65,21 @@ typedef struct event_t {
 	dlist_node_t _node;
 
 	/* event data */
-	int type; /* the event type */
-	XDevice* device; /* the target device (keyboard/mouse) */
-	int param1; /* first parameter. button/key or x coordinate */
-	int param2; /* second parameter. True/False (down/up) or y coordinate */
-	int delay; /* the event delay since the last event (in milliseconds) */
+
+	/* the event type, see scheduler_event_type_t enum */
+	int type;
+
+	/* the target device (keyboard/mouse) */
+	XDevice* device;
+
+	/* first parameter. button/key or x coordinate */
+	int param1;
+
+	/* second parameter. True/False (down/up) or y coordinate */
+	int param2;
+
+	/* the event delay from the last event (in milliseconds) */
+	int delay;
 } event_t;
 
 
@@ -71,7 +100,7 @@ void scheduler_fini();
 /**
  * Adds new event to the scheduler.
  *
- * @param[in] type    the event type (SCHEDULER_EVENT_*)
+ * @param[in] type    the event type (see scheduler_event_type_t enum)
  * @param[in] device  the input device.
  * @param[in] param1  the first parameter. For button and key events it's the button/key code.
  *                    For motion events it's the x coordinate of the new cursor location.
@@ -87,8 +116,8 @@ event_t* scheduler_add_event(int type, XDevice* device, int param1, int param2, 
 /**
  * Processes events until the specified timestamp.
  *
- * This function simulates events that should have 'happened' before the
- * specified timestmap. After event is simulated, it's removed from queue and freed.
+ * This function emulates all events that should have 'happened' before the
+ * specified timestmap. After an event is fired, it's removed from queue and freed.
  * @param[in] timestamp   the end timestamp.
  * @return
  */

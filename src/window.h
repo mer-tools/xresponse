@@ -29,6 +29,21 @@
  * OF THIS SOFTWARE.
  */
 
+/**
+ * @file window.h
+ * X window damage monitoring.
+ *
+ * window.c|h files provides monitored windows management. Upon receiving damage
+ * event xresponse reports damage if the window is on the monitored windows list.
+ * A window can be added to this list in the following ways:
+ *  1) during startup xresponse scans all existing windows if they are associated
+ *     with to-be-monitored application.
+ *  2) a window can be explicitly added to the monitored list with command line
+ *     option (-id).
+ *  3) when a window is created, xresponse check if it's associated with
+ *     to-be-monitored applicaiton.
+ */
+
 #ifndef _WINDOW_H_
 #define _WINDOW_H_
 
@@ -86,7 +101,7 @@ void window_set_damage_level(int level);
  * Searches monitored window list for the specified window.
  *
  * @param window[in]  the window to search.
- * @return            the located window or NULL otherwise.
+ * @return            the found window or NULL otherwise.
  */
 window_t* window_find(Window window);
 

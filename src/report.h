@@ -29,19 +29,34 @@
  * OF THIS SOFTWARE.
  */
 
+/**
+ * @file report.h
+ * Reporting subsystem implementation.
+ *
+ * Because of asynchronous nature of XDamage and XRecord events it was
+ * necessary to queue and sort them before printing, to ensure the events
+ * are printed in correct order and the timestamp differences are correct.
+ *
+ * Response mode required custom output, which can be enabled by setting
+ * raw mode with report_set_raw() function.
+ */
+
 #ifndef _REPORT_H_
 #define _REPORT_H_
 
+/* Timestamp value to force message reuse the last message timestamp.
+ * Usually used for informative messages.
+ */
 #define REPORT_LAST_TIMESTAMP	(-1)
 
 /*
- * Defines the maximum time period in milliseconds for report queueing.
+ * Defines the maximum time period in milliseconds for report queuing.
  */
 #define REPORT_TIMEOUT          5000
 
 
 /**
- * Initializes report.
+ * Initializes reporting subsystem.
  *
  * @param[in] filename   the report filename. Standard output is used
  *                       if the filename is NULL.
@@ -60,7 +75,8 @@ void report_fini();
  *
  * This function allocates new report record, sets the specified timestamp,
  * formats the message and adds to the logger message queue.
- * @param[in] timestamp     the message timestamp.
+ * @param[in] timestamp     the message timestamp. Use REPORT_LAST_TIMESTAMP to
+ *                          use the timestamp of the last message.
  * @param[in] format        the message format (see printf specification).
  * @param ...               the message parameters.
  * @return
@@ -70,6 +86,8 @@ void report_add_message(Time timestamp, const char* format, ...);
 
 /**
  * Writes the report message queue to the defined output.
+ *
+ * The message queue is sorted before flushing.
  */
 void report_flush_queue();
 

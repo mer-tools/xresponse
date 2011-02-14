@@ -41,11 +41,17 @@
 #include "window.h"
 #include "xhandler.h"
 
+/**
+ * The application management data.
+ */
 typedef struct {
+	/* to-be-monitored application list */
 	dlist_t applications;
 
+	/* the screen application */
 	application_t* screen;
 
+	/* monitor-all flag, specifying if all applications must be monitored */
 	bool all;
 } monitor_t;
 
@@ -71,6 +77,27 @@ response_t response = {
 
 
 /**
+ * Adds a new application to the monitored application list.
+ *
+ * When a new window is created xresponse checks the monitored application list
+ * if the window belongs to a monitored application and its damage events must
+ * be monitored.
+ * @param name[in]          the application name.
+ * @return                  the created application object.
+ */
+static application_t* application_add(const char* name)
+{
+	application_t* app = dlist_create_node(sizeof(application_t));
+	app->name = strdup_a(name);
+	app->ref = 1;
+	memset(&app->first_damage_event, 0, sizeof(XDamageNotifyEvent));
+	memset(&app->last_damage_event, 0, sizeof(XDamageNotifyEvent));
+	dlist_add(&monitor.applications, app);
+	return app;
+}
+
+
+/**
  * Releases resources allocated by the application.
  *
  * @param[in] app  the application to free.
@@ -81,6 +108,17 @@ static void application_free(application_t* app)
 	free(app);
 }
 
+
+/**
+ * Searches application list for the specified application.
+ *
+ * @param name[in]  the application name.
+ * @return 			reference to the located application or NULL otherwise.
+ */
+static application_t* application_find(const char* name)
+{
+	return dlist_find(&monitor.applications, (char*)name, (op_binary_t)compare_application_name);
+}
 
 /**
  * Compares application name with the specified string.
@@ -133,7 +171,7 @@ static void report_app_damage_event(application_t* app, Time* ptimestamp)
  * @param[in] timestamp  the report event timestamp.
  * @return
  */
-void application_report_response_data(Time timestamp)
+static void application_report_response_data(Time timestamp)
 {
 	if (response.application && !response.application->first_damage_event.timestamp) {
 		fprintf(stderr,
@@ -155,34 +193,6 @@ void application_report_response_data(Time timestamp)
 /*
  * Public API
  */
-
-
-void application_reset_all_events()
-{
-	dlist_foreach(&monitor.applications, (op_unary_t)application_reset_events);
-	dlist_foreach(&monitor.applications, (op_unary_t)application_release);
-	
-	application_release(response.application);
-}
-
-
-application_t* application_add(const char* name)
-{
-	application_t* app = dlist_create_node(sizeof(application_t));
-	app->name = strdup_a(name);
-	app->ref = 1;
-	memset(&app->first_damage_event, 0, sizeof(XDamageNotifyEvent));
-	memset(&app->last_damage_event, 0, sizeof(XDamageNotifyEvent));
-	dlist_add(&monitor.applications, app);
-	return app;
-}
-
-
-application_t* application_find(const char* name)
-{
-	application_t* app = dlist_find(&monitor.applications, (char*)name, (op_binary_t)compare_application_name);
-	return app;
-}
 
 
 application_t* application_monitor(const char* name)
@@ -231,12 +241,15 @@ void application_set_monitor_all(bool value)
 
 application_t* application_try_monitor(const char* resource)
 {
+	application_t* app = application_find(resource);
+	if (app) {
+		application_addref(app);
+		return app;
+	}
 	if (monitor.all) {
 		return application_monitor(resource);
 	}
-	application_t* app = application_find(resource);
-	if (app) application_addref(app);
-	return app;
+	return NULL;
 }
 
 
@@ -257,7 +270,10 @@ void application_response_reset(Time timestamp)
 		if (response.last_action_time) {
 			report_add_message(0, "Warning, new user event received in the middle of update. "
 				"It is possible that update time is not correct.\n");
-			application_reset_all_events();
+
+			dlist_foreach(&monitor.applications, (op_unary_t)application_reset_events);
+			dlist_foreach(&monitor.applications, (op_unary_t)application_release);
+			application_release(response.application);
 		}
 		response.last_action_time = timestamp;
 		gettimeofday(&response.last_action_timestamp, NULL);
