@@ -69,6 +69,8 @@
 
 #define DEFAULT_KEY_DELAY	(100lu)
 
+#define DEFAULT_DRAG_DELAY	(20lu)
+
 /* wait timer resolution (msecs) */
 #define WAIT_RESOLUTION		100
 
@@ -713,11 +715,11 @@ int main(int argc, char **argv)
 		if (!strcmp("-d", argv[i]) || !strcmp("--drag", argv[i])) {
 			Time drag_time;
 			char *s = NULL, *p = NULL;
-			unsigned long delay = 0;
 			int first_drag = 1, button_state = XR_BUTTON_STATE_PRESS;
 
 			s = p = argv[++i];
 			while (1) {
+				unsigned long delay = DEFAULT_DRAG_DELAY;
 				if (*p == ',' || *p == '\0') {
 					Bool end = False;
 
