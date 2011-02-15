@@ -222,7 +222,6 @@ static int process_event()
 		}
 		return e.ev.type;
 	}
-	report_flush_queue();
 	return 0;
 }
 
@@ -252,10 +251,6 @@ static int wait_response()
 		if (event_type == xhandler.damage_event_num + XDamageNotify) {
 			last_time = current_time;
 
-			if (check_timeval_timeout(&report_time, &current_time, REPORT_TIMEOUT)) {
-				report_flush_queue();
-				report_time = current_time;
-			}
 			/* check if options.break_on_damage was set and elapsed */
 			if (options.break_on_damage && !(--options.break_on_damage))
 				break;
@@ -265,10 +260,15 @@ static int wait_response()
 					application_response_report();
 				}
 			}
-
+			report_flush_queue();
+			report_time = current_time;
+		}
+		if (check_timeval_timeout(&report_time, &current_time, REPORT_TIMEOUT)) {
+			report_flush_queue();
 			report_time = current_time;
 		}
 	}
+	report_flush_queue();
 	return 0;
 }
 
@@ -312,7 +312,8 @@ void usage(char *progname)
 		"                                    or after the <number> damage event if 'damage' was specified.\n"
 		"-l|--level <raw|delta|box|nonempty> Specify the damage reporting level.\n"
 		"-u|--user                           Enable user input monitoring.\n"
-		"-r|--response <timeout[,verbose]>   Enable application response monitoring (timeout given in msecs).\n"
+		"-U|--user-all                       Enable all user input monitoring, including pointer movement.\n"
+"-r|--response <timeout[,verbose]>   Enable application response monitoring (timeout given in msecs).\n"
 		"                                    If verbose is not specified the damage reporting will be suppresed.\n"
 		"\n", progname, progname, DEFAULT_KEY_DELAY);
 	exit(1);
@@ -628,7 +629,8 @@ int main(int argc, char **argv)
 		}
 
 		/* */
-		if (streq("-u", argv[i]) || streq("--user", argv[i])) {
+		if (streq("-u", argv[i]) || streq("--user", argv[i]) ||
+				(xrecord.motion = (streq("-U", argv[i]) || streq("--user-all", argv[i])) ) ) {
 			xinput_init(xhandler.display);
 			if (verbose)
 				report_add_message(REPORT_LAST_TIMESTAMP, "Reporting user input events\n");

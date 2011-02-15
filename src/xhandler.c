@@ -64,11 +64,10 @@ static int xhandler_xerror(Display* dpy, XErrorEvent *e)
 	/* BadDamage error sometimes happens when calling XDamageDestroy for
 	 * windows being removed. Apparently the damage has been already destroyed
 	 * before the call.*/
-	e->error_code == 153) {
+	e->error_code == 153 || e->error_code == 182) {
 		fprintf(stderr, " - ignored\n");
 		return 0;
 	}
-	fprintf(stderr, "\n");
 	exit(1);
 }
 

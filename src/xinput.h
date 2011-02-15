@@ -65,9 +65,15 @@
  * User input monitoring data.
  */
 typedef struct {
+	/* the recording display */
 	Display* display;
+	/* the recording context */
 	XRecordContext context;
+	/* true if user input monitoring enabled and
+	 * XRecord support initialized */
 	bool enabled;
+	/* true if pointer motion must be reported */
+	bool motion;
 } xrecord_t;
 
 

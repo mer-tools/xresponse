@@ -39,6 +39,8 @@
 #include <stdbool.h>
 #include <stdarg.h>
 
+#include <glib.h>
+
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
@@ -50,16 +52,10 @@
 
 #include "report.h"
 
-#include "sp-rtrace/dlist.h"
-
 /**
  * Message record data structure
  */
 typedef struct {
-	/* double linked list support */
-	dlist_node_t _node;
-	
-	/* message data */
 	/* message timestamp */
 	Time timestamp;
 	/* message body */
@@ -72,7 +68,7 @@ typedef struct {
  */
 typedef struct {
 	/* message queue */
-	dlist_t messages;
+	GQueue messages;
 	/* the output file stream */
 	FILE* fp;
 	/* flag specifying ownership of the output stream */
@@ -93,11 +89,12 @@ static report_t report = {
 /**
  * Releases resources allocated by the report record.
  * @param[in] rec  the record to free.
+ * @param[in]      unused.
  */
-static void record_free(record_t* rec)
+static void record_free(record_t* rec, void* __attribute__((unused)) data)
 {
 	free(rec->message);
-	free(rec);
+	g_slice_free(record_t, rec);
 }
 
 
@@ -106,7 +103,7 @@ static void record_free(record_t* rec)
  *
  * @param[in] rec  the record to write.
  */
-static void report_write_record(record_t* rec)
+static void report_write_record(record_t* rec, void* __attribute__((unused)) data)
 {
 	static Time last_timestamp = 0;
 	static bool displayed_header = false;
@@ -138,7 +135,7 @@ static void report_write_record(record_t* rec)
  *                      =0 the timestamps are equal.
  *                      >0 the first timestamp is greater.
  */
-static long compare_records_by_time(record_t* rec1, record_t* rec2)
+static gint compare_records_by_time(const record_t* rec1, const record_t* rec2, void* __attribute__((unused)) data)
 {
 	return rec1->timestamp - rec2->timestamp;
 }
@@ -150,6 +147,7 @@ static long compare_records_by_time(record_t* rec1, record_t* rec2)
 
 void report_init(const char* filename)
 {
+	g_queue_init(&report.messages);
 	if (filename) {
 		report.fp = fopen(filename, "w");
 		if (!report.fp) {
@@ -166,7 +164,8 @@ void report_init(const char* filename)
 
 void report_fini()
 {
-	dlist_free(&report.messages, (op_unary_t)record_free);
+	g_queue_foreach(&report.messages, (GFunc)record_free, NULL);
+	g_queue_clear(&report.messages);
 	if (report.fp_owner) {
 		fclose(report.fp);
 	}
@@ -183,7 +182,7 @@ void report_add_message(Time timestamp, const char* format, ...)
 		last_timestamp = timestamp;
 	}
 	
-	record_t* rec = dlist_create_node(sizeof(record_t));
+	record_t* rec = g_slice_new(record_t);
 	va_list ap;
 	va_start(ap, format);
 	if (vasprintf(&rec->message, format, ap) == -1) {
@@ -192,7 +191,7 @@ void report_add_message(Time timestamp, const char* format, ...)
 	}
 	if (rec) {
 		rec->timestamp = timestamp;
-		dlist_add(&report.messages, rec);
+		g_queue_push_tail(&report.messages, rec);
 	} else {
 		fprintf(stderr, "Warning, failed to buffer log record, out of memory\n");
 		exit(-1);
@@ -201,9 +200,10 @@ void report_add_message(Time timestamp, const char* format, ...)
 
 void report_flush_queue()
 {
-	dlist_sort(&report.messages, (op_binary_t)compare_records_by_time);
-	dlist_foreach(&report.messages, (op_unary_t)report_write_record);
-	dlist_free(&report.messages, (op_unary_t)record_free);
+	g_queue_sort(&report.messages, (GCompareDataFunc)compare_records_by_time, NULL);
+	g_queue_foreach(&report.messages, (GFunc)report_write_record, NULL);
+	g_queue_foreach(&report.messages, (GFunc)record_free, NULL);
+	g_queue_clear(&report.messages);
 	fflush(report.fp);
 }
 

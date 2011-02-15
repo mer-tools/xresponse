@@ -57,18 +57,17 @@
 #include <X11/extensions/record.h>
 
 #include "application.h"
-#include "sp-rtrace/dlist.h"
 
 /**
  * Window data structure
  */
 typedef struct _window_t {
-	/* double linked list support */
-	dlist_node_t _node;
-	/* window data */
-	Window window; /* the window id */
-	Damage damage; /* the damage context */
-	application_t* application; /* the owner application */
+	/* the window id */
+	Window window;
+	/* the damage context */
+	Damage damage;
+	/* the owner application */
+	application_t* application;
 } window_t;
 
 

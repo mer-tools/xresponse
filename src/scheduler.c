@@ -36,6 +36,8 @@
 #include <limits.h>
 #include <stdbool.h>
 
+#include <glib.h>
+
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
@@ -50,13 +52,10 @@
 
 typedef struct {
 	/* scheduled event list */
-	dlist_t events;
+	GQueue events;
 
 	/* the connected display */
 	Display* display;
-
-	/* the current timestamp */
-	struct timeval* ptimestamp;
 
 	/* timestamp of the last processed event */
 	struct timeval last_timestamp;
@@ -69,9 +68,13 @@ static scheduler_t scheduler = {
 				.tv_sec = 0,
 				.tv_usec = 0,
 		},
-		.ptimestamp = NULL,
 };
 
+
+static void event_free(event_t* event, void* __attribute__((unused)) data)
+{
+	g_slice_free(event_t, event);
+}
 
 
 /**
@@ -108,31 +111,6 @@ static void fake_event(event_t* event)
 }
 
 
-/**
- * Emulates event and removes it from the scheduler.
- *
- * @param[in] event   the event to emulate.
- */
-static void process_event(event_t* event)
-{
-	fake_event(event);
-	dlist_remove(&scheduler.events, event);
-	free(event);
-	scheduler.last_timestamp = *scheduler.ptimestamp;
-}
-
-/**
- * Checks if the event must be emulated.
- *
- * This function checks if enough time has passed since the last event emulation
- * so the current event can be emulated.
- * @param[in] event   the event to check.
- * @return            0 - event must be emulated.
- */
-static long check_delay(event_t* event)
-{
-	return check_timeval_timeout(&scheduler.last_timestamp, scheduler.ptimestamp, event->delay);
-}
 
 /*
  * Public API implementation.
@@ -142,25 +120,25 @@ static long check_delay(event_t* event)
 void scheduler_init(Display* display)
 {
 	scheduler.display = display;
-	dlist_init(&scheduler.events);
+	g_queue_init(&scheduler.events);
 }
 
 
 void scheduler_fini()
 {
-	dlist_free(&scheduler.events, (op_unary_t)free);
+	g_queue_foreach(&scheduler.events, (GFunc)event_free, NULL);
 }
 
 
 event_t* scheduler_add_event(int type, XDevice* device, int param1, int param2, int delay)
 {
-	event_t* event = dlist_create_node(sizeof(event_t));
+	event_t* event = g_slice_new(event_t);
 	event->type = type;
 	event->device = device;
 	event->param1 = param1;
 	event->param2 = param2;
 	event->delay = delay;
-	dlist_add(&scheduler.events, event);
+	g_queue_push_tail(&scheduler.events, event);
 	return event;
 }
 
@@ -170,8 +148,15 @@ void scheduler_process(struct timeval* timestamp)
 	if (!scheduler.last_timestamp.tv_sec) {
 		scheduler.last_timestamp = *timestamp;
 	}
-	scheduler.ptimestamp = timestamp;
-	dlist_foreach_in(&scheduler.events, dlist_first(&scheduler.events), (op_unary_t)check_delay, (op_unary_t)process_event);
+
+	event_t* event;
+	while ( (event = g_queue_peek_head(&scheduler.events)) &&
+			check_timeval_timeout(&scheduler.last_timestamp, timestamp, event->delay) ) {
+		fake_event(event);
+		g_queue_pop_head(&scheduler.events);
+		scheduler.last_timestamp = *timestamp;
+		event_free(event, NULL);
+	}
 }
 
 

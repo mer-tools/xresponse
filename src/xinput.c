@@ -40,7 +40,6 @@
 #include "application.h"
 #include "window.h"
 #include "report.h"
-#include "sp-rtrace/utils.h"
 
 
 /* the xrecord data */
@@ -48,6 +47,7 @@ xrecord_t xrecord = {
 		.display = NULL,
 		.context = 0,
 		.enabled = false,
+		.motion = false,
 };
 
 /* Needed for client window checking */
@@ -211,10 +211,10 @@ static void xrecord_callback(XPointer closure, XRecordInterceptData* data)
 			break;
 
 		case MotionNotify:
-			/*
-			 log_add_message(xev->u.keyButtonPointer.time, "Pointer moved to %dx%d\n",
-			 xev->u.keyButtonPointer.rootX, xev->u.keyButtonPointer.rootY);
-			 */
+			if (xrecord.motion) {
+				report_add_message(xev->u.keyButtonPointer.time, "Pointer moved to %dx%d\n",
+					xev->u.keyButtonPointer.rootX, xev->u.keyButtonPointer.rootY);
+			}
 			x = xev->u.keyButtonPointer.rootX;
 			y = xev->u.keyButtonPointer.rootY;
 			break;
@@ -255,13 +255,13 @@ void xinput_init(Display* dpy)
 		exit(-1);
 	}
 	/* prepare event range data */
-	rec_range = malloc_a(sizeof(XRecordRange*) * num_ranges);
+	rec_range = g_malloc(sizeof(XRecordRange*) * num_ranges);
 	XRecordRange* range;
 	XRecordRange** ptrRange = rec_range;
 
 	range = XRecordAllocRange();
 	range->device_events.first = KeyPress;
-	range->device_events.last = KeyPress;
+	range->device_events.last = KeyRelease;
 	*ptrRange++ = range;
 
 	range = XRecordAllocRange();

@@ -42,8 +42,6 @@
 #ifndef _SCHEDULER_H_
 #define _SCHEDULER_H_
 
-#include "sp-rtrace/dlist.h"
-
 /**
  * The input event types.
  */
@@ -61,11 +59,6 @@ enum scheduler_event_type_t {
  * Scheduler event structure
  */
 typedef struct event_t {
-	/* double linked list support */
-	dlist_node_t _node;
-
-	/* event data */
-
 	/* the event type, see scheduler_event_type_t enum */
 	int type;
 

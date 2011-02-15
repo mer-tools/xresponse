@@ -40,8 +40,6 @@
 #ifndef _APPLICATION_H_
 #define _APPLICATION_H_
 
-#include "sp-rtrace/dlist.h"
-
 #include <stdbool.h>
 
 #include <X11/Xlib.h>
@@ -57,9 +55,6 @@
  * Application data structure.
  */
 typedef struct application_t {
-	/* double linked list support */
-	dlist_node_t _node;
-
 	/* the application resource name (binary file) */
 	char* name;
 
@@ -208,7 +203,7 @@ void application_addref(application_t* app);
  * Decrements application reference counter and removes the application from monitored
  * applications list if necessary.
  *
- * @param app[in]   the application to release.
+ * @param[in] app   the application to release.
  * @return
  */
 void application_release(application_t* app);

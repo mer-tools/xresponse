@@ -34,7 +34,8 @@
 #include <stdarg.h>
 #include <sys/time.h>
 
-#include "sp-rtrace/utils.h"
+#include <glib.h>
+
 #include "application.h"
 #include "xresponse.h"
 #include "report.h"
@@ -46,7 +47,7 @@
  */
 typedef struct {
 	/* to-be-monitored application list */
-	dlist_t applications;
+	GList* applications;
 
 	/* the screen application */
 	application_t* screen;
@@ -87,12 +88,12 @@ response_t response = {
  */
 static application_t* application_add(const char* name)
 {
-	application_t* app = dlist_create_node(sizeof(application_t));
-	app->name = strdup_a(name);
+	application_t* app = g_slice_new(application_t);
+	app->name = g_strdup(name);
 	app->ref = 1;
 	memset(&app->first_damage_event, 0, sizeof(XDamageNotifyEvent));
 	memset(&app->last_damage_event, 0, sizeof(XDamageNotifyEvent));
-	dlist_add(&monitor.applications, app);
+	monitor.applications = g_list_prepend(monitor.applications, app);
 	return app;
 }
 
@@ -102,10 +103,41 @@ static application_t* application_add(const char* name)
  *
  * @param[in] app  the application to free.
  */
-static void application_free(application_t* app)
+static void application_free(application_t* app, void* __attribute__((unused)) data)
 {
 	if (app->name) free(app->name);
-	free(app);
+	g_slice_free(application_t, app);
+}
+
+
+/**
+ * Decrements application reference counter and removes the application from monitored
+ * applications list if necessary.
+ *
+ * @param[in] app   the application to release.
+ * @param[in] data  unused
+ * @return
+ */
+static void application_release_data(application_t* app, void* __attribute__((unused)) data)
+{
+	if (app  && !(--app->ref) ) {
+		monitor.applications = g_list_remove(monitor.applications, app);
+		application_free(app, NULL);
+	}
+}
+
+
+/**
+ * Compares application name with the specified string.
+ *
+ * This function is used to implement application_find() functionality.
+ * @param[in] app    The application to compare.
+ * @param[in] name   the string to match.
+ * @return           0 if the name matches the specified string.
+ */
+static gint compare_application_name(application_t* app, const char* name, void* __attribute__((unused)) data)
+{
+	return strcmp(app->name, name);
 }
 
 
@@ -117,21 +149,10 @@ static void application_free(application_t* app)
  */
 static application_t* application_find(const char* name)
 {
-	return dlist_find(&monitor.applications, (char*)name, (op_binary_t)compare_application_name);
+	GList* node = g_list_find_custom(monitor.applications, name, (GCompareFunc)compare_application_name);
+	return node ? node->data : NULL;
 }
 
-/**
- * Compares application name with the specified string.
- *
- * This function is used to implement application_find() functionality.
- * @param[in] app    The application to compare.
- * @param[in] name   the string to match.
- * @return           0 if the name matches the specified string.
- */
-static long compare_application_name(application_t* app, const char* name)
-{
-	return strcmp(app->name, name);
-}
 
 /**
  * Resets application damage events.
@@ -143,7 +164,7 @@ static void application_reset_events(application_t* app)
 	if (app->first_damage_event.timestamp) {
 		app->first_damage_event.timestamp = 0;
 		app->last_damage_event.timestamp = 0;
-		application_release(app);
+		application_release_data(app, NULL);
 	}
 }
 
@@ -160,7 +181,7 @@ static void report_app_damage_event(application_t* app, Time* ptimestamp)
 				app->name ? app->name : "(unknown)",
 				app->first_damage_event.timestamp - response.last_action_time, app->last_damage_event.timestamp - response.last_action_time);
 		app->first_damage_event.timestamp = 0;
-		application_release(app);
+		application_release_data(app, NULL);
 	}
 }
 
@@ -184,10 +205,11 @@ static void application_report_response_data(Time timestamp)
 		}
 	}
 
-	dlist_foreach2(&monitor.applications, (op_binary_t)report_app_damage_event, (void*)&timestamp);
+	g_list_foreach(monitor.applications, (GFunc)report_app_damage_event, (gpointer)&timestamp);
 	report_add_message(timestamp, "\n");
-	application_release(response.application);
+	application_release_data(response.application, NULL);
 }
+
 
 
 /*
@@ -210,7 +232,7 @@ application_t* application_monitor(const char* name)
 
 void application_init()
 {
-	dlist_init(&monitor.applications);
+	monitor.applications = NULL;
 	monitor.screen = NULL;
 	response.application = NULL;
 }
@@ -218,7 +240,7 @@ void application_init()
 
 void application_fini()
 {
-	dlist_free(&monitor.applications, (op_unary_t)application_free);
+	g_list_foreach(monitor.applications, (GFunc)application_free, NULL);
 	monitor.screen = NULL;
 	response.application = NULL;
 }
@@ -271,9 +293,9 @@ void application_response_reset(Time timestamp)
 			report_add_message(0, "Warning, new user event received in the middle of update. "
 				"It is possible that update time is not correct.\n");
 
-			dlist_foreach(&monitor.applications, (op_unary_t)application_reset_events);
-			dlist_foreach(&monitor.applications, (op_unary_t)application_release);
-			application_release(response.application);
+			g_list_foreach(monitor.applications, (GFunc)application_reset_events, NULL);
+			g_list_foreach(monitor.applications, (GFunc)application_release_data, NULL);
+			application_release_data(response.application, NULL);
 		}
 		response.last_action_time = timestamp;
 		gettimeofday(&response.last_action_timestamp, NULL);
@@ -316,7 +338,7 @@ void application_monitor_screen()
 
 bool application_empty()
 {
-	return dlist_first(&monitor.applications) == NULL;
+	return monitor.applications == NULL;
 }
 
 void application_addref(application_t* app)
@@ -328,8 +350,5 @@ void application_addref(application_t* app)
 
 void application_release(application_t* app)
 {
-	if (app  && !(--app->ref) ) {
-		dlist_remove(&monitor.applications, app);
-		application_free(app);
-	}
+	application_release_data(app, NULL);
 }

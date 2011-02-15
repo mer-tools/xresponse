@@ -37,6 +37,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <glib.h>
+
 #include "xresponse.h"
 #include "application.h"
 
@@ -45,7 +47,8 @@
  */
 typedef struct {
 	/* window list */
-	dlist_t windows;
+	GList* windows;
+
 	/* the connected display */
 	Display* display;
 
@@ -54,6 +57,7 @@ typedef struct {
 } monitor_t;
 
 static monitor_t monitor = {
+		.windows = NULL,
 		.display = NULL,
 		.damage_level = XDamageReportBoundingBox,
 };
@@ -63,11 +67,11 @@ static monitor_t monitor = {
  * Releases resources allocated by the window.
  * @param[in] win  the window to free.
  */
-static void window_free(window_t* win)
+static void window_free(window_t* win, void* __attribute__((unused)) data)
 {
 	if (win->damage) XDamageDestroy(monitor.display, win->damage);
 	if (win->application) application_release(win->application);
-	free(win);
+	g_slice_free(window_t, win);
 }
 
 
@@ -77,7 +81,7 @@ static void window_free(window_t* win)
  * @param[in] window  the id to compare.
  * @return            0 if id's match.
  */
-static long compare_window(window_t* win, Window window)
+static gint compare_window(window_t* win, Window window)
 {
 	return win->window == window ? 0 : 1;
 }
@@ -108,7 +112,7 @@ static bool window_start_monitor(window_t* win)
  * the list if failed.
  * @param[in] win   the window to monitor.
  */
-static void window_monitor_or_remove(window_t* win)
+static void window_monitor_or_remove(window_t* win, void* __attribute__((unused)) data)
 {
 	if (!window_start_monitor(win)) {
 		window_remove(win);
@@ -122,21 +126,22 @@ static void window_monitor_or_remove(window_t* win)
 
 void window_init(Display* display)
 {
-	dlist_init(&monitor.windows);
+	monitor.windows = NULL;
 	monitor.display = display;
 }
 
 
 void window_fini()
 {
-	dlist_free(&monitor.windows, (op_unary_t)window_free);
+	g_list_foreach(monitor.windows, (GFunc)window_free, NULL);
+	g_list_free(monitor.windows);
 }
 
 
 void window_remove(window_t* win)
 {
-	dlist_remove(&monitor.windows, win);
-	window_free(win);
+	monitor.windows = g_list_remove(monitor.windows, win);
+	window_free(win, NULL);
 }
 
 void window_set_damage_level(int level)
@@ -147,7 +152,8 @@ void window_set_damage_level(int level)
 
 window_t* window_find(Window window)
 {
-	return dlist_find(&monitor.windows, (void*)window, (op_binary_t)compare_window);
+	GList* node = g_list_find_custom(monitor.windows, (gconstpointer)window, (GCompareFunc)compare_window);
+	return node ? node->data : NULL;
 }
 
 
@@ -194,7 +200,7 @@ window_t* window_try_monitor(Window window)
 
 void window_monitor_all()
 {
-	dlist_foreach(&monitor.windows, (op_unary_t)window_monitor_or_remove);
+	g_list_foreach(monitor.windows, (GFunc)window_monitor_or_remove, NULL);
 }
 
 
@@ -220,17 +226,17 @@ void window_try_monitor_children(Window window)
 
 bool window_empty()
 {
-	return dlist_first(&monitor.windows) == NULL;
+	return monitor.windows == NULL;
 }
 
 
 window_t* window_add(Window window, application_t* application)
 {
-	window_t* win = dlist_create_node(sizeof(window_t));
+	window_t* win = g_slice_new(window_t);
 	win->window = window;
 	win->damage = 0;
 	win->application = application;
-	dlist_add(&monitor.windows, win);
+	monitor.windows = g_list_prepend(monitor.windows, win);
 	return win;
 }
 
