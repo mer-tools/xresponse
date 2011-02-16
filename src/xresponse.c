@@ -71,6 +71,8 @@
 
 #define DEFAULT_DRAG_DELAY	(20lu)
 
+#define DEFAULT_DRAG_COUNT	(10u)
+
 /* wait timer resolution (msecs) */
 #define WAIT_RESOLUTION		100
 
@@ -290,6 +292,10 @@ void usage(char *progname)
 		"                                    If not specified no delay is used\n"
 		"-d|--drag <delay|XxY,delay|XxY,...> Simulate mouse drag and collect damage\n"
 		"                                    Optionally add delay between drag points\n"
+		"-d <X1xY1-X2xY2[*delay[+count]]>    Simulate 'smooth' dragging between the specified\n"
+		"                                    points by interpolating the <count> drag points\n"
+		"                                    with <delay> between them. By default count is 10\n"
+		"                                    and delay is 20 ms.\n"
 		"-k|--key <keysym[,delay]>           Simulate pressing and releasing a key\n"
 		"                                    Delay is in milliseconds.\n"
 		"                                If not specified, default of %lu ms is used\n"
@@ -573,7 +579,9 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Too many input events specified\n");
 				exit(-1);
 			}
-			if (!match_regex(argv[i + 1], "^([0-9]+,)?([0-9]+x[0-9]+,([0-9]+,)?)+[0-9]+x[0-9]+$")) {
+			if (!match_regex(argv[i + 1], "^([0-9]+,)?(([0-9]+x[0-9]+,([0-9]+,)?)+[0-9]+x[0-9]+)$") &&
+				 (!match_regex(argv[i + 1], "[0-9]+x[0-9]+-[0-9]+x[0-9]+") ||
+				  !match_regex(argv[i + 1], "^(((([0-9]+,)?([0-9]+x[0-9]+)|([0-9]+x[0-9]+-[0-9]+x[0-9]+(\\*[0-9]+)?(\\+[1-9][0-9]*)?)),?)+)$") ) ) {
 				fprintf(stderr, "Failed to parse --drag options: %s\n", argv[i + 1]);
 				exit(-1);
 			}
@@ -717,53 +725,60 @@ int main(int argc, char **argv)
 		if (!strcmp("-d", argv[i]) || !strcmp("--drag", argv[i])) {
 			Time drag_time;
 			char *s = NULL, *p = NULL;
-			int first_drag = 1, button_state = XR_BUTTON_STATE_PRESS;
+			int button_state = XR_BUTTON_STATE_PRESS;
 
 			s = p = argv[++i];
-			unsigned long delay = DEFAULT_DRAG_DELAY;
-			while (1) {
-				if (*p == ',' || *p == '\0') {
-					Bool end = False;
+			int delay = DEFAULT_DRAG_DELAY;
+			int x1, y1, x2, y2;
+			while (p) {
+				p = strchr(s, ',');
+				if (p) {
+					*p++ = '\0';
+				}
+				int count = DEFAULT_DRAG_COUNT;
+				cnt = sscanf(s, "%ix%i-%ix%i*%i+%i", &x1, &y1, &x2, &y2, &delay, &count);
+				fprintf(stderr, "cnt=%d\n", cnt);
+				if (cnt >= 4) {
+					drag_time = xemu_drag_event(x1, y1, button_state, delay);
+					button_state = XR_BUTTON_STATE_NONE;
+					report_add_message(drag_time, "Dragged to %ix%i\n", x1, y1);
 
-					if (*p == '\0') {
+					int xdev = (x2 - x1) / (count + 1);
+					int ydev = (y2 - y1) / (count + 1);
+					for (i = 1; i <= count; i++) {
+						x = x1 + xdev * i;
+						y = y1 + ydev * i;
+						drag_time = xemu_drag_event(x, y, button_state, delay);
+						report_add_message(drag_time, "Dragged to %ix%i\n", x, y);
+					}
+					if (!p) button_state = XR_BUTTON_STATE_RELEASE;
+					drag_time = xemu_drag_event(x2, y2, button_state, delay);
+					report_add_message(drag_time, "Dragged to %ix%i\n", x2, y2);
+				}
+				else if (cnt == 2) {
+					/* Send the event */
+					if (!p) {
 						if (button_state == XR_BUTTON_STATE_PRESS) {
 							fprintf(stderr, "*** Need at least 2 drag points!\n");
 							usage(argv[0]);
 						}
-
-						/* last passed point so make sure button released */
 						button_state = XR_BUTTON_STATE_RELEASE;
-						end = True;
-					} else
-						*p = '\0';
-
-					cnt = sscanf(s, "%ux%u", &x, &y);
-					if (cnt == 2) {
-						/* Send the event */
-						drag_time = xemu_drag_event(x, y, button_state, delay);
-
-						if (first_drag) {
-							first_drag = 0;
-						}
-						report_add_message(drag_time, "Dragged to %ix%i\n", x, y);
-
-						/* Make sure button state set to none after first point */
-						button_state = XR_BUTTON_STATE_NONE;
-
-						/* reset the delay to default value */
-						delay = DEFAULT_DRAG_DELAY;
-					} else if (cnt == 1) {
-						delay = x;
-					} else {
-						fprintf(stderr, "*** failed to parse '%s'\n", argv[i]);
-						usage(argv[0]);
 					}
+					drag_time = xemu_drag_event(x1, y1, button_state, delay);
+					report_add_message(drag_time, "Dragged to %ix%i\n", x1, y1);
 
-					if (end)
-						break;
-					s = p + 1;
+					/* Make sure button state set to none after first point */
+					button_state = XR_BUTTON_STATE_NONE;
+
+					/* reset the delay to default value */
+					delay = DEFAULT_DRAG_DELAY;
+				} else if (cnt == 1) {
+					delay = x1;
+				} else {
+					fprintf(stderr, "*** failed to parse '%s'\n", argv[i]);
+					usage(argv[0]);
 				}
-				p++;
+				s = p;
 			}
 			continue;
 		}

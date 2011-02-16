@@ -29,6 +29,11 @@ Send click to given coordinates and wait for damage response. The optional delay
 Simulate mouse drag and collect damage. Optionally specify delay between the next drag coordinates in milliseconds.
 Note that the delay option must always be followed by coordinates.
 .TP
+.B \-d, \-\-drag \fIX1xY1-X2xY2[*delay[+count]],...\fP
+Simulate 'smooth' mouse drag between the specified points and collect damage. Xreponse will
+insert \fIcount\fP number of darg points (10 by default) between the end points to ensure
+smoother (user like) drag operation. The default \fIdelay\fP between drag points is 20ms.
+.TP
 .B \-k, \-\-key \fIkeysym[,delay]\fP
 Simulate pressing and releasing a key. The optional delay is in milliseconds. If not specified, a default of 100 ms is used.
 .TP
@@ -77,6 +82,9 @@ Filter out damage events based on their dimensions \fIXxY\fP or size \fIS\fP. Th
 .B \-u, \-\-user
 Monitor user input (keyboard/mouse) events. Currently only button and key presses are supported.
 Xresponse reports clicked application name only for applications that are monitored (specified with -a option).
+.TP
+.B \-U, \-\-user\-all
+Monitor user input events like --user option plus additionally pointer movement events.
 .TP
 .B \-r, \-\-response \fI<msec>[,verbose]\fP
 Enables ui response monitoring mode. In this mode xresponse reports the first and last damage events
