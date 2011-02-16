@@ -720,8 +720,8 @@ int main(int argc, char **argv)
 			int first_drag = 1, button_state = XR_BUTTON_STATE_PRESS;
 
 			s = p = argv[++i];
+			unsigned long delay = DEFAULT_DRAG_DELAY;
 			while (1) {
-				unsigned long delay = DEFAULT_DRAG_DELAY;
 				if (*p == ',' || *p == '\0') {
 					Bool end = False;
 
@@ -749,6 +749,9 @@ int main(int argc, char **argv)
 
 						/* Make sure button state set to none after first point */
 						button_state = XR_BUTTON_STATE_NONE;
+
+						/* reset the delay to default value */
+						delay = DEFAULT_DRAG_DELAY;
 					} else if (cnt == 1) {
 						delay = x;
 					} else {
