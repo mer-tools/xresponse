@@ -1,3 +1,5 @@
+man1_MANS = doc/*.1
+	    
 SUBDIRS = src
 
 EXTRA_DIST = debian/*

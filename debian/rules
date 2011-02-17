@@ -48,7 +48,7 @@ binary-arch: build install
 	chown -R root:root debian/tmp
 	chmod -R go=rX debian/tmp
 	dpkg --build debian/tmp ..
-	dh_installman debian/xresponse.1
+#	dh_installman debian/xresponse.1
 
 binary: binary-indep binary-arch
 
