@@ -35,6 +35,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <sys/time.h>
 
 #include <glib.h>
 
@@ -143,7 +144,7 @@ event_t* scheduler_add_event(int type, XDevice* device, int param1, int param2, 
 }
 
 
-void scheduler_process(struct timeval* timestamp)
+int scheduler_process(struct timeval* timestamp)
 {
 	if (!scheduler.last_timestamp.tv_sec) {
 		scheduler.last_timestamp = *timestamp;
@@ -154,9 +155,19 @@ void scheduler_process(struct timeval* timestamp)
 			check_timeval_timeout(&scheduler.last_timestamp, timestamp, event->delay) ) {
 		fake_event(event);
 		g_queue_pop_head(&scheduler.events);
-		scheduler.last_timestamp = *timestamp;
+
+		struct timeval delay = {
+		    .tv_usec = event->delay * 1000,
+		};
+		timeradd(&scheduler.last_timestamp, &delay, &scheduler.last_timestamp);
+
 		event_free(event, NULL);
 	}
+	if (!event) return 0;
+	struct timeval diff;
+	timersub(timestamp, &scheduler.last_timestamp, &diff);
+	int diff_val = diff.tv_sec * 1000 + diff.tv_usec / 1000;
+	return event->delay - diff_val;
 }
 
 

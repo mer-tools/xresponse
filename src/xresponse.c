@@ -146,10 +146,10 @@ static bool match_exclude_rules(XDamageNotifyEvent* dev)
 /**
  * Retrieves and processes single X event.
  */
-static int process_event()
+static int process_event(int slice)
 {
 	xevent_t e;
-	struct timeval tv = { 0, WAIT_RESOLUTION * 1000 };
+	struct timeval tv = { 0, slice * 1000 };
 
 	if (!options.abort_wait && xhandler_get_xevent_timed(&e.ev, &tv)) {
 		if (e.ev.type == xhandler.damage_event_num + XDamageNotify) {
@@ -247,9 +247,10 @@ static int wait_response()
 			break;
 
 		/* simulate events */
-		scheduler_process(&current_time);
+		int next_delay = scheduler_process(&current_time);
+		if (!next_delay || next_delay > WAIT_RESOLUTION) next_delay = WAIT_RESOLUTION;
 
-		event_type = process_event();
+		event_type = process_event(next_delay);
 		if (event_type == xhandler.damage_event_num + XDamageNotify) {
 			last_time = current_time;
 
@@ -279,7 +280,7 @@ static int wait_response()
  */
 static void process_events()
 {
-	while (process_event())
+	while (process_event(WAIT_RESOLUTION))
 		;
 }
 
