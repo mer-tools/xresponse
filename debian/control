@@ -10,6 +10,6 @@ Package: xresponse
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}, libx11-6, libxdamage1, libxext6, libxfixes3, libxtst6
 Description: x11 debug tool
-  xresponse is a simple tool for meassuring UI response times to a
-  full mouse click event. It requires the Xtest, to 'fake' the mouse
-  event, and XDamage, to report areas of the display that have changed.
+ xresponse is a simple tool for meassuring UI response times to a full mouse
+ click event. It requires the Xtest, to 'fake' the mouse event, and XDamage, to
+ report areas of the display that have changed.
