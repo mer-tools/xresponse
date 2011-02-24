@@ -8,7 +8,7 @@ Build-Depends: debmake, libx11-dev, libxdamage-dev, libxfixes-dev, libxtst-dev, 
 
 Package: xresponse
 Architecture: any
-Depends: ${shlibs:Depends}, libx11-6, libxdamage1, libxext6, libxfixes3, libxtst6
+Depends: ${misc:Depends}, ${shlibs:Depends}, libx11-6, libxdamage1, libxext6, libxfixes3, libxtst6
 Description: x11 debug tool
   xresponse is a simple tool for meassuring UI response times to a
   full mouse click event. It requires the Xtest, to 'fake' the mouse
