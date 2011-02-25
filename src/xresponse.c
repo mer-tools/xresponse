@@ -738,7 +738,6 @@ int main(int argc, char **argv)
 				}
 				int count = DEFAULT_DRAG_COUNT;
 				cnt = sscanf(s, "%ix%i-%ix%i*%i+%i", &x1, &y1, &x2, &y2, &delay, &count);
-				fprintf(stderr, "cnt=%d\n", cnt);
 				if (cnt >= 4) {
 					drag_time = xemu_drag_event(x1, y1, button_state, delay);
 					button_state = XR_BUTTON_STATE_NONE;
