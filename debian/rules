@@ -26,9 +26,8 @@ clean:
 	rm -f build-stamp
 
   # Add here commands to clean up after the build process.
-	#
-	-$(MAKE) clean
-	-$(MAKE) distclean
+	[ ! -f Makefile ] || $(MAKE) clean
+	[ ! -f Makefile ] || $(MAKE) distclean
 
 	rm -f `find . -name "*~"`
 	rm -rf debian/tmp debian/files* core debian/substvars

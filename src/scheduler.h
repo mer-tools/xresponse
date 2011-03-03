@@ -112,9 +112,10 @@ event_t* scheduler_add_event(int type, XDevice* device, int param1, int param2, 
  * This function emulates all events that should have 'happened' before the
  * specified timestmap. After an event is fired, it's removed from queue and freed.
  * @param[in] timestamp   the end timestamp.
- * @return
+ * @return                the time until the next event (in milliseconds) or 0 if the event
+ *                        queue is empty.
  */
-void scheduler_process(struct timeval* timestamp);
+int scheduler_process(struct timeval* timestamp);
 
 
 #endif

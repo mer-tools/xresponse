@@ -4,12 +4,12 @@ Priority: optional
 Maintainer: maemo integration <integration@maemo.org>
 Standards-Version: 3.8.0
 Build-Depends: debmake, libx11-dev, libxdamage-dev, libxfixes-dev, libxtst-dev, libxext-dev, libxi-dev, 
-  debhelper (>= 4.1.0), pkg-config, libglib2.0-dev
+  debhelper (>= 4.1.0), pkg-config, autoconf, automake, libglib2.0-dev
 
 Package: xresponse
 Architecture: any
-Depends: ${shlibs:Depends}, libx11-6, libxdamage1, libxext6, libxfixes3, libxtst6
+Depends: ${misc:Depends}, ${shlibs:Depends}, libx11-6, libxdamage1, libxext6, libxfixes3, libxtst6
 Description: x11 debug tool
-  xresponse is a simple tool for meassuring UI response times to a
-  full mouse click event. It requires the Xtest, to 'fake' the mouse
-  event, and XDamage, to report areas of the display that have changed.
+ xresponse is a simple tool for meassuring UI response times to a full mouse
+ click event. It requires the Xtest, to 'fake' the mouse event, and XDamage, to
+ report areas of the display that have changed.
