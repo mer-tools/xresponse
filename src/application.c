@@ -279,8 +279,14 @@ application_t* application_try_monitor(const char* resource)
 void application_response_report()
 {
 	if (response.last_action_time) {
-		report_add_message(0, "Device response time to %s:\n", response.last_action_name);
-		application_report_response_data(0);
+		/* In raw mode only data with 0 timestamps are printed. That was done to suppress
+		 * the standard damage reporting output.
+		 * TODO: much better would be not generating damage reports in raw mode instead of
+		 * just suppressing them at reporter level.
+		 */
+		Time timestamp = report_get_raw() ? 0 : REPORT_LAST_TIMESTAMP;
+		report_add_message(timestamp, "Device response time to %s:\n", response.last_action_name);
+		application_report_response_data(timestamp);
 		response.last_action_time = 0;
 		response.last_action_timestamp.tv_sec = 0;
 		response.last_action_timestamp.tv_usec = 0;

@@ -44,6 +44,8 @@
 #ifndef _REPORT_H_
 #define _REPORT_H_
 
+#include <stdbool.h>
+
 /* Timestamp value to force message reuse the last message timestamp.
  * Usually used for informative messages.
  */
@@ -101,6 +103,17 @@ void report_flush_queue();
  *                     false - disable raw operation mode.
  */
 void report_set_raw(bool value);
+
+
+/**
+ * Checks if raw reporting mode is enabled
+ *
+ * In raw mode no formatting is done to the output data while in normal
+ * mode server timestamp and time difference values are printed before
+ * output text.
+ * @return
+ */
+bool report_get_raw();
 
 
 #endif

@@ -63,6 +63,10 @@ typedef struct {
 } record_t;
 
 
+/* the last report timestamp */
+static Time last_timestamp = 0;
+
+
 /**
  * Report data structure.
  */
@@ -79,7 +83,7 @@ typedef struct {
 } report_t;
 
 /* the report */
-static report_t report = {
+report_t report = {
 		.fp = NULL,
 		.fp_owner = false,
 		.raw = false,
@@ -105,7 +109,6 @@ static void record_free(record_t* rec, void* __attribute__((unused)) data)
  */
 static void report_write_record(record_t* rec, void* __attribute__((unused)) data)
 {
-	static Time last_timestamp = 0;
 	static bool displayed_header = false;
 
 	if (!last_timestamp) last_timestamp = rec->timestamp;
@@ -174,7 +177,6 @@ void report_fini()
 
 void report_add_message(Time timestamp, const char* format, ...)
 {
-	static Time last_timestamp = 0;
 	if (timestamp == REPORT_LAST_TIMESTAMP) {
 		timestamp = last_timestamp;
 	}
@@ -210,4 +212,9 @@ void report_flush_queue()
 void report_set_raw(bool value)
 {
 	report.raw = value;
+}
+
+bool report_get_raw()
+{
+	return report.raw;
 }
