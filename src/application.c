@@ -34,6 +34,8 @@
 #include <stdarg.h>
 #include <sys/time.h>
 #include <string.h>
+#include <execinfo.h>
+#include <unistd.h>
 
 #include <glib.h>
 
@@ -301,7 +303,6 @@ void application_response_reset(Time timestamp)
 				"It is possible that update time is not correct.\n");
 
 			g_list_foreach(monitor.applications, (GFunc)application_reset_events, NULL);
-			g_list_foreach(monitor.applications, (GFunc)application_release_data, NULL);
 			application_release_data(response.application, NULL);
 		}
 		response.last_action_time = timestamp;

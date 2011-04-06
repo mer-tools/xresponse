@@ -255,7 +255,7 @@ void xinput_init(Display* dpy)
 		exit(-1);
 	}
 	/* prepare event range data */
-	rec_range = g_malloc(sizeof(XRecordRange*) * num_ranges);
+	rec_range = (XRecordRange**) g_malloc(sizeof(XRecordRange*) * num_ranges);
 	XRecordRange* range;
 	XRecordRange** ptrRange = rec_range;
 
