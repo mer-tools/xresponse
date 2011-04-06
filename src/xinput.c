@@ -203,11 +203,24 @@ static void xrecord_callback(XPointer closure, XRecordInterceptData* data)
 		case KeyPress:
 			report_add_message(xev->u.keyButtonPointer.time, "Key %s pressed\n", XKeysymToString(XKeycodeToKeysym(dpy,
 					xev->u.u.detail, 0)));
+
+			if (response.timeout) {
+				application_set_user_action("key press (%s)",  XKeysymToString(XKeycodeToKeysym(dpy, xev->u.u.detail, 0)));
+				application_response_reset(xev->u.keyButtonPointer.time);
+				application_response_start(app);
+			}
 			break;
 
 		case KeyRelease:
+			/* report any button press related response times */
+			application_response_report();
+
 			report_add_message(xev->u.keyButtonPointer.time, "Key %s released\n", XKeysymToString(XKeycodeToKeysym(dpy,
 					xev->u.u.detail, 0)));
+			if (response.timeout) {
+				application_set_user_action("key release (%s)",  XKeysymToString(XKeycodeToKeysym(dpy, xev->u.u.detail, 0)));
+				application_response_reset(xev->u.keyButtonPointer.time);
+			}
 			break;
 
 		case MotionNotify:
