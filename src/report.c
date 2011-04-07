@@ -60,11 +60,10 @@ typedef struct {
 	Time timestamp;
 	/* message body */
 	char* message;
+	/* If true the message will be printed even in silent mode.
+	 * Set for response reporting messages. */
+	bool print_always;
 } record_t;
-
-
-/* the last report timestamp */
-static Time last_timestamp = 0;
 
 
 /**
@@ -77,16 +76,17 @@ typedef struct {
 	FILE* fp;
 	/* flag specifying ownership of the output stream */
 	bool fp_owner;
-	/* flag specifying raw, unformatted output. Used for application
-	 * response reports. */
-	bool raw;
+	/* Flag specifying silent mode. In this mode damage common messages
+	 * (damage reports and such) are hidden. Used for application response
+	 * reporting. */
+	bool silent;
 } report_t;
 
 /* the report */
-report_t report = {
+static report_t report = {
 		.fp = NULL,
 		.fp_owner = false,
-		.raw = false,
+		.silent = false,
 };
 
 
@@ -110,10 +110,12 @@ static void record_free(record_t* rec, void* __attribute__((unused)) data)
 static void report_write_record(record_t* rec, void* __attribute__((unused)) data)
 {
 	static bool displayed_header = false;
+	/* the last report timestamp */
+	static Time last_timestamp = 0;
 
 	if (!last_timestamp) last_timestamp = rec->timestamp;
 
-	if (!report.raw) {
+	if (!report.silent) {
 		if (!displayed_header) { /* Header */
 			fprintf(report.fp, "\n"
 				" Server Time : Diff    : Info\n"
@@ -121,12 +123,12 @@ static void report_write_record(record_t* rec, void* __attribute__((unused)) dat
 			displayed_header = true;
 		}
 		fprintf(report.fp, "%10lums : %5lums : %s", rec->timestamp, rec->timestamp - last_timestamp, rec->message);
-		last_timestamp = rec->timestamp;
 	}
 	else {
-		if (!rec->timestamp)
+		if (rec->print_always)
 			fprintf(report.fp, "%s", rec->message);
 	}
+	last_timestamp = rec->timestamp;
 }
 
 /**
@@ -143,6 +145,33 @@ static gint compare_records_by_time(const record_t* rec1, const record_t* rec2, 
 	return rec1->timestamp - rec2->timestamp;
 }
 
+
+static void add_message(Time timestamp, bool print_always, const char* format, va_list* ap)
+{
+	/* the last report timestamp */
+	static Time last_timestamp = 0;
+
+	if (timestamp == REPORT_LAST_TIMESTAMP) {
+		timestamp = last_timestamp;
+	}
+	else if (last_timestamp == 0) {
+		last_timestamp = timestamp;
+	}
+
+	record_t* rec = g_slice_new(record_t);
+	if (vasprintf(&rec->message, format, *ap) == -1) {
+		free(rec);
+		rec = NULL;
+	}
+	if (!rec) {
+		fprintf(stderr, "Warning, failed to buffer log record, out of memory\n");
+		exit(-1);
+	}
+	rec->timestamp = timestamp;
+	rec->print_always = print_always;
+	g_queue_push_tail(&report.messages, rec);
+	last_timestamp = timestamp;
+}
 
 /*
  * Public API implementation.
@@ -177,28 +206,23 @@ void report_fini()
 
 void report_add_message(Time timestamp, const char* format, ...)
 {
-	if (timestamp == REPORT_LAST_TIMESTAMP) {
-		timestamp = last_timestamp;
-	}
-	else if (last_timestamp == 0) {
-		last_timestamp = timestamp;
-	}
-	
-	record_t* rec = g_slice_new(record_t);
+	/* the last report timestamp */
 	va_list ap;
 	va_start(ap, format);
-	if (vasprintf(&rec->message, format, ap) == -1) {
-		free(rec);
-		rec = NULL;
-	}
-	if (rec) {
-		rec->timestamp = timestamp;
-		g_queue_push_tail(&report.messages, rec);
-	} else {
-		fprintf(stderr, "Warning, failed to buffer log record, out of memory\n");
-		exit(-1);
-	}
+	add_message(timestamp, false, format, &ap);
+	va_end(ap);
 }
+
+
+void report_add_message_forced(const char* format, ...)
+{
+	/* the last report timestamp */
+	va_list ap;
+	va_start(ap, format);
+	add_message(REPORT_LAST_TIMESTAMP, true, format, &ap);
+	va_end(ap);
+}
+
 
 void report_flush_queue()
 {
@@ -209,12 +233,12 @@ void report_flush_queue()
 	fflush(report.fp);
 }
 
-void report_set_raw(bool value)
+void report_set_silent(bool value)
 {
-	report.raw = value;
+	report.silent = value;
 }
 
-bool report_get_raw()
+bool report_get_silent()
 {
-	return report.raw;
+	return report.silent;
 }
