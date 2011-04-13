@@ -44,6 +44,8 @@
 #ifndef _REPORT_H_
 #define _REPORT_H_
 
+#include <stdbool.h>
+
 /* Timestamp value to force message reuse the last message timestamp.
  * Usually used for informative messages.
  */
@@ -85,6 +87,19 @@ void report_add_message(Time timestamp, const char* format, ...);
 
 
 /**
+ * Adds message to the report queue.
+ *
+ * This function allocates new report record, sets the last message timestamp,
+ * formats the message and adds to the logger message queue.
+ * Additionally the message is flagged as 'print_always' causing it to
+ * be printed even in silent mode (used by response reporting).
+ * @param[in] format        the message format (see printf specification).
+ * @param ...               the message parameters.
+ * @return
+ */
+void report_add_message_forced(const char* format, ...);
+
+/**
  * Writes the report message queue to the defined output.
  *
  * The message queue is sorted before flushing.
@@ -100,7 +115,18 @@ void report_flush_queue();
  * @param[in] value    true  - enable raw operation mode.
  *                     false - disable raw operation mode.
  */
-void report_set_raw(bool value);
+void report_set_silent(bool value);
+
+
+/**
+ * Checks if raw reporting mode is enabled
+ *
+ * In raw mode no formatting is done to the output data while in normal
+ * mode server timestamp and time difference values are printed before
+ * output text.
+ * @return
+ */
+bool report_get_silent();
 
 
 #endif

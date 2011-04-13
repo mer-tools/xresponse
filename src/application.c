@@ -34,6 +34,8 @@
 #include <stdarg.h>
 #include <sys/time.h>
 #include <string.h>
+#include <execinfo.h>
+#include <unistd.h>
 
 #include <glib.h>
 
@@ -173,12 +175,11 @@ static void application_reset_events(application_t* app)
  * Reports damage events for the specified application at the given timestamp.
  *
  * @param[in] app          the specified application.
- * @param[in] ptimestamp   the current timestmap.
  */
-static void report_app_damage_event(application_t* app, Time* ptimestamp)
+static void report_app_damage_event(application_t* app, void* __attribute__((unused)) data)
 {
 	if (app->first_damage_event.timestamp) {
-		report_add_message(*ptimestamp, "\t%32s updates: first %5ims, last %5ims\n",
+		report_add_message_forced("\t%32s updates: first %5ims, last %5ims\n",
 				app->name ? app->name : "(unknown)",
 				app->first_damage_event.timestamp - response.last_action_time, app->last_damage_event.timestamp - response.last_action_time);
 		app->first_damage_event.timestamp = 0;
@@ -193,7 +194,7 @@ static void report_app_damage_event(application_t* app, Time* ptimestamp)
  * @param[in] timestamp  the report event timestamp.
  * @return
  */
-static void application_report_response_data(Time timestamp)
+static void application_report_response_data()
 {
 	if (response.application && !response.application->first_damage_event.timestamp) {
 		fprintf(stderr,
@@ -206,8 +207,8 @@ static void application_report_response_data(Time timestamp)
 		}
 	}
 
-	g_list_foreach(monitor.applications, (GFunc)report_app_damage_event, (gpointer)&timestamp);
-	report_add_message(timestamp, "\n");
+	g_list_foreach(monitor.applications, (GFunc)report_app_damage_event, NULL);
+	report_add_message_forced("\n");
 	application_release_data(response.application, NULL);
 }
 
@@ -279,8 +280,13 @@ application_t* application_try_monitor(const char* resource)
 void application_response_report()
 {
 	if (response.last_action_time) {
-		report_add_message(0, "Device response time to %s:\n", response.last_action_name);
-		application_report_response_data(0);
+		/* In raw mode only data with 0 timestamps are printed. That was done to suppress
+		 * the standard damage reporting output.
+		 * TODO: much better would be not generating damage reports in raw mode instead of
+		 * just suppressing them at reporter level.
+		 */
+		report_add_message_forced("Device response time to %s:\n", response.last_action_name);
+		application_report_response_data();
 		response.last_action_time = 0;
 		response.last_action_timestamp.tv_sec = 0;
 		response.last_action_timestamp.tv_usec = 0;
@@ -291,11 +297,10 @@ void application_response_reset(Time timestamp)
 {
 	if (response.timeout) {
 		if (response.last_action_time) {
-			report_add_message(0, "Warning, new user event received in the middle of update. "
+			report_add_message_forced("Warning, new user event received in the middle of update. "
 				"It is possible that update time is not correct.\n");
 
 			g_list_foreach(monitor.applications, (GFunc)application_reset_events, NULL);
-			g_list_foreach(monitor.applications, (GFunc)application_release_data, NULL);
 			application_release_data(response.application, NULL);
 		}
 		response.last_action_time = timestamp;

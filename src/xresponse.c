@@ -657,7 +657,7 @@ int main(int argc, char **argv)
 				usage(argv[0]);
 			}
 			if (cnt < 2) {
-				report_set_raw(true);
+				report_set_silent(true);
 			} else {
 				if (strcmp(option, "verbose")) {
 					fprintf(stderr, "*** invalid response option '%s'\n", argv[i]);
