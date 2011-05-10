@@ -442,7 +442,7 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Too many input events specified\n");
 				exit(-1);
 			}
-			if (!match_regex(argv[i + 1], "^[0-9]+x[0-9]+(,[0-9]+)?$")) {
+			if (!argv[i + 1] || !match_regex(argv[i + 1], "^[0-9]+x[0-9]+(,[0-9]+)?$")) {
 				fprintf(stderr, "Failed to parse --c options: %s\n", argv[i + 1]);
 				exit(-1);
 			}
@@ -580,9 +580,9 @@ int main(int argc, char **argv)
 				fprintf(stderr, "Too many input events specified\n");
 				exit(-1);
 			}
-			if (!match_regex(argv[i + 1], "^([0-9]+,)?(([0-9]+x[0-9]+,([0-9]+,)?)+[0-9]+x[0-9]+)$") &&
+			if (!argv[i + 1] || (!match_regex(argv[i + 1], "^([0-9]+,)?(([0-9]+x[0-9]+,([0-9]+,)?)+[0-9]+x[0-9]+)$") &&
 				 (!match_regex(argv[i + 1], "[0-9]+x[0-9]+-[0-9]+x[0-9]+") ||
-				  !match_regex(argv[i + 1], "^(((([0-9]+,)?([0-9]+x[0-9]+)|([0-9]+x[0-9]+-[0-9]+x[0-9]+(\\*[0-9]+)?(\\+[1-9][0-9]*)?)),?)+)$") ) ) {
+				  !match_regex(argv[i + 1], "^(((([0-9]+,)?([0-9]+x[0-9]+)|([0-9]+x[0-9]+-[0-9]+x[0-9]+(\\*[0-9]+)?(\\+[1-9][0-9]*)?)),?)+)$") ) ) ) {
 				fprintf(stderr, "Failed to parse --drag options: %s\n", argv[i + 1]);
 				exit(-1);
 			}
