@@ -1,0 +1,104 @@
+xresponse (1.0.2), 05 May 2011:
+  * Fix "xresponse --click" crashes
+
+xresponse (1.0.1), 07 Apr 2011:
+  * Fix output issues with xresponse response reporting
+
+xresponse (1.0), 24 Feb 2011:
+  * Rewrite/split xresponse.c to separate files and change it to
+    use Glib for data structures
+  * Fix where xresponse drag doesn't work to minimize applications
+
+xresponse (0.3.2-25), 27 Sep 2010:
+  * Fix xresponse aborting to Bad Damage error
+
+xresponse (0.3.2-24), 10 Sep 2010:
+  * Fix xresponse keypress emulation delay not working
+
+xresponse (0.3.2-23), 15 Oct 2009:
+  * Monitor root window by default
+
+xresponse (0.3.2-22), 18 Jun 2009:
+  * Fix drag option failure in browser as it cannot handle pressure events
+  * Fix more problems with drag option
+  * Fix events reported in wrong order
+  * Fix user input emulation delay options blocking incoming damage events
+
+xresponse (0.3.2-21), 23 Sep 2009:
+  * Fix reports incorrect response times with the -r option
+
+xresponse (0.3.2-20), 04 Sep 2009:
+  * Fix xresponse memory corruption
+
+xresponse (0.3.2-19), 18 Jun 2009:
+  * Add an option to monitor all applications
+  * Add new option to monitor application response times to user actions
+
+xresponse (0.3.2-18), 16 Jun 2009:
+  * Flush the output
+
+xresponse (0.3.2-17), 25 May 2009:
+  * Fix incorrect timestamp difference reported for click emulation
+
+xresponse (0.3.2-16), 19 May 2009:
+  * Damage and input events might not be reported in correct order fix
+
+xresponse (0.3.2-15), 22 Apr 2009:
+  * Add an option to specify delay between drag events
+  * Xresponse does not warn about overriding wait values
+
+xresponse (0.3.2-14), 13 Mar 2009:
+  * Fix -m option using relative damage position instead of
+    translating it to the absolute (screen) position
+  * Added another parameter to the -b option
+  * Added window creating/mapping/unmapping reporting 
+  * Moved mouse/keyboard input emulation after 
+    initializing window/application monitoring
+  * Added option to monitor user input
+
+xresponse (0.3.2-13), 25 Feb 2009:
+  * Added new commands: --application, --exclude, --break, --level.
+  * Changed command processing. Instead of monitoring damage after every
+    mouse/keyboard command the damage is monitored after all commands
+    are processed. This means that the previously used command
+    sequences, like: xresponse -w 1 -c 10x10 -c 20x20 -w 5 -c 30x30 must
+    now be split over multiple xresponse calls.
+
+xresponse (0.3.2-12), 23 Feb 2009:
+  * Improved building keycode-keysyms mapping, which is used to emulate
+    text string typing (-t option). 
+  * Fixed crash when the string passed with -t option contained
+    unrecognized symbols
+
+xresponse (0.3.2-11), 16 Feb 2009:
+  * Added an optional delay parameter to -c option to control time
+    between mousebutton press and release events. 
+  * Added libxi-dev as build dependency
+
+xresponse (0.3.2-10), 21 Oct 2008:
+  * Added -id option to allow monitoring damage events for other windows
+    than root window as well. 
+
+xresponse (0.3.2-9), 25 Jun 2008:
+  * Documentation improvements.
+  * The -k option now supports default delay between artifical
+    keypress/-release events. 
+
+xresponse (0.3.2-8), 6 Mar 2008:
+  * Logging improved.
+  * Monitor damage events also for synthesized key events.
+
+xresponse (0.3.2-7), 22 Jan 2008:
+  * Imported some code from xautomation to xresponse in order to
+    implement support for synthesizing keyboard events.
+
+xresponse (0.3.2-6), 12 Sep 2007:
+  * Changed the way the overlap between monitored area and damage events
+    is checked
+
+xresponse (0.3.2-5), 27 Jun 2007:
+  * correct copyright information
+  * proper man pages
+
+xresponse (0.3.2-3), 29 Aug 2006:
+  * Fix xresponse waiting forever if event received at timeout
