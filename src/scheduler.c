@@ -50,6 +50,7 @@
 
 #include "scheduler.h"
 #include "xresponse.h"
+#include "xemu.h"
 
 typedef struct {
 	/* scheduled event list */
@@ -90,22 +91,26 @@ static void fake_event(event_t* event)
 	static int yPos = 0;
 
 	switch (event->type) {
-	case SCHEDULER_EVENT_BUTTON: {
-		int axis[2] = { xPos, yPos };
-		XTestFakeDeviceButtonEvent(scheduler.display, event->device, event->param1, event->param2, axis, 2, CurrentTime);
-		break;
-	}
+		case SCHEDULER_EVENT_BUTTON: {
+			int axis[XEMU_POINTER_MAX_AXES] = {xPos, yPos};
+			XTestFakeDeviceButtonEvent(scheduler.display, event->device, event->param1,
+					event->param2, axis, event->naxes, CurrentTime);
+			break;
+		}
 
-	case SCHEDULER_EVENT_KEY:
-		XTestFakeDeviceKeyEvent(scheduler.display, event->device, event->param1, event->param2, NULL, 0, CurrentTime);
-		break;
+		case SCHEDULER_EVENT_KEY: {
+				int axis[XEMU_POINTER_MAX_AXES] = {xPos, yPos};
+				XTestFakeDeviceKeyEvent(scheduler.display, event->device, event->param1,
+						event->param2, axis, event->naxes, CurrentTime);
+				break;
+		}
 
-	case SCHEDULER_EVENT_MOTION:
-		xPos = event->param1;
-		yPos = event->param2;
-		{
-			int axis[2] = { xPos, yPos };
-			XTestFakeDeviceMotionEvent(scheduler.display, event->device, False, 0, axis, 2, CurrentTime);
+		case SCHEDULER_EVENT_MOTION: {
+			xPos = event->param1;
+			yPos = event->param2;
+			int axis[XEMU_POINTER_MAX_AXES] = {xPos, yPos};
+			XTestFakeDeviceMotionEvent(scheduler.display, event->device, False, 0,
+					axis, event->naxes, CurrentTime);
 			break;
 		}
 	}
@@ -131,7 +136,7 @@ void scheduler_fini()
 }
 
 
-event_t* scheduler_add_event(int type, XDevice* device, int param1, int param2, int delay)
+event_t* scheduler_add_event(int type, XDevice* device, int param1, int param2, int delay, int naxes)
 {
 	event_t* event = g_slice_new(event_t);
 	event->type = type;
@@ -139,6 +144,7 @@ event_t* scheduler_add_event(int type, XDevice* device, int param1, int param2, 
 	event->param1 = param1;
 	event->param2 = param2;
 	event->delay = delay;
+	event->naxes = naxes;
 	g_queue_push_tail(&scheduler.events, event);
 	return event;
 }

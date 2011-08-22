@@ -186,6 +186,17 @@ bool xhandler_init(const char *dpy_name)
 		if ((deviceName == NULL && devInfo[i].use == IsXExtensionPointer) || (deviceName && !strcmp(deviceName,
 				devInfo[i].name))) {
 			xemu.pointer = XOpenDevice(xhandler.display, devInfo[i].id);
+			/* read number of axes supported by the device */
+			XAnyClassPtr any = devInfo[i].inputclassinfo;
+			int index = 0;
+			for (index = 0; index < devInfo[i].num_classes; index++) {
+				if (any->class == ValuatorClass) {
+					XValuatorInfo* valuator = (XValuatorInfo*)any;
+					if (xemu.pointer_naxes < valuator->num_axes) xemu.pointer_naxes = valuator->num_axes;
+				}
+				any = (XAnyClassPtr)((char*)any + any->length);
+			}
+			if (xemu.pointer_naxes > XEMU_POINTER_MAX_AXES) xemu.pointer_naxes = XEMU_POINTER_MAX_AXES;
 			break;
 		}
 	}

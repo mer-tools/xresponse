@@ -43,6 +43,7 @@ xemu_t xemu = {
 		.keyboard = NULL,
 		.pointer = NULL,
 		.display = NULL,
+		.pointer_naxes = 2,
 };
 
 // this maps what keysyms need a modifier pushed
@@ -125,10 +126,10 @@ Time xemu_send_string(char *thing_in)
 			if (keysym >= MAX_KEYSYM || !keycode) {
 				fprintf(stderr, "Special character '%ls' is currently not supported.\n", wc_singlechar_str);
 			} else {
-				if (wrap_key) scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, wrap_key, True, 0);
-				scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, keycode, True, 0);
-				scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, keycode, False, 0);
-				if (wrap_key) scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, wrap_key, False, 0);
+				if (wrap_key) scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, wrap_key, True, 0, 0);
+				scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, keycode, True, 0, 0);
+				scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, keycode, False, 0, 0);
+				if (wrap_key) scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, wrap_key, False, 0, 0);
 
 				/* Not flushing after every key like we need to, thanks
 				 * thorsten@staerk.de */
@@ -207,8 +208,8 @@ Time xemu_send_key(char *thing, unsigned long delay)
 		Time start = xhandler_get_server_time(xemu.display);
 		KeyCode kc = thing_to_keycode(thing);
 
-		scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, kc, True, 0);
-		scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, kc, False, delay);
+		scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, kc, True, 0, 0);
+		scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, kc, False, delay, 0);
 
 		return start;
 	}
@@ -224,9 +225,9 @@ Time xemu_button_event(int x, int y, int delay)
 	if (xemu.pointer) {
 		Time start = xhandler_get_server_time(xemu.display);
 
-		scheduler_add_event(SCHEDULER_EVENT_MOTION, xemu.pointer, x, y, 0);
-		scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, True, 0);
-		scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, False, delay);
+		scheduler_add_event(SCHEDULER_EVENT_MOTION, xemu.pointer, x, y, 0, xemu.pointer_naxes);
+		scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, True, 0, 2);
+		scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, False, delay, 0);
 
 		return start;
 	}
@@ -238,13 +239,13 @@ Time xemu_drag_event(int x, int y, int button_state, int delay)
 	if (xemu.pointer) {
 		Time start = xhandler_get_server_time(xemu.display);
 
-		scheduler_add_event(SCHEDULER_EVENT_MOTION, xemu.pointer, x, y, delay);
+		scheduler_add_event(SCHEDULER_EVENT_MOTION, xemu.pointer, x, y, delay, xemu.pointer_naxes);
 
 		if (button_state == XR_BUTTON_STATE_PRESS) {
-			scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, True, 0);
+			scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, True, 0, 2);
 		}
 		if (button_state == XR_BUTTON_STATE_RELEASE) {
-			scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, False, 0);
+			scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, False, 0, 0);
 		}
 		return start;
 	}

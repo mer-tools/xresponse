@@ -73,6 +73,9 @@ typedef struct event_t {
 
 	/* the event delay from the last event (in milliseconds) */
 	int delay;
+
+	/* number of axes supported by device/event */
+	int naxes;
 } event_t;
 
 
@@ -101,9 +104,10 @@ void scheduler_fini();
  *                    if the button/key was pressed or released. For motion events it's the y
  *                    coordinate of the new cursor location.
  * @param[in] delay   the delay time since the last event (in milliseconds)
+ * @param[in] naxes   the number of axes supported by device/event
  * @return            the added event or NULL in the case of an error.
  */
-event_t* scheduler_add_event(int type, XDevice* device, int param1, int param2, int delay);
+event_t* scheduler_add_event(int type, XDevice* device, int param1, int param2, int delay, int naxes);
 
 
 /**

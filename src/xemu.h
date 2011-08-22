@@ -54,12 +54,14 @@ enum { /* for 'dragging' */
 	XR_BUTTON_STATE_NONE, XR_BUTTON_STATE_PRESS, XR_BUTTON_STATE_RELEASE
 };
 
+#define XEMU_POINTER_MAX_AXES     6
+
 
 typedef struct {
 	XDevice* keyboard;
 	XDevice* pointer;
 	Display* display;
-
+	int pointer_naxes;
 } xemu_t;
 
 extern xemu_t xemu;
