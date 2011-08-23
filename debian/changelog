@@ -1,3 +1,10 @@
+xresponse (1.1) unstable; urgency=low
+
+  * Fixes: NB#278070 - PR1.1 LPT testing blocker: some xresponse drag actions
+    don't work
+
+ -- Tommi Rantala <ext-tommi.1.rantala@nokia.com>  Tue, 23 Aug 2011 10:06:08 +0300
+
 xresponse (0.3.2-1osso29) unstable; urgency=low
 
   * Fixes: NB#252207 - "xresponse --click" crashes
