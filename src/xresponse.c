@@ -275,14 +275,6 @@ static int wait_response()
 	return 0;
 }
 
-/**
- * Retrieves and processes queued X events.
- */
-static void process_events()
-{
-	while (process_event(WAIT_RESOLUTION))
-		;
-}
 
 void usage(char *progname)
 {
@@ -716,7 +708,6 @@ int main(int argc, char **argv)
 				usage(argv[0]);
 			}
 			/* Send the event */
-			process_events();
 			start = xemu_button_event(x, y, delay);
 			report_add_message(start, "Clicked %ix%i\n", x, y);
 
@@ -800,7 +791,6 @@ int main(int argc, char **argv)
 					free(key);
 				usage(argv[0]);
 			}
-			process_events();
 			start = xemu_send_key(key, delay);
 			report_add_message(start, "Simulating keypress/-release pair (keycode '%s')\n", key);
 			free(key);
