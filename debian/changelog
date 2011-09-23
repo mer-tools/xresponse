@@ -1,3 +1,10 @@
+xresponse (1.1.1) unstable; urgency=low
+
+  * Fixes: NB#283582 - Emulating mouse click with xresponse does not work for
+    busy applications
+
+ -- Tommi Rantala <ext-tommi.1.rantala@nokia.com>  Fri, 23 Sep 2011 13:48:58 +0300
+
 xresponse (1.1) unstable; urgency=low
 
   * Fixes: NB#278070 - PR1.1 LPT testing blocker: some xresponse drag actions
