@@ -1,7 +1,7 @@
 Source: xresponse
 Section: x11
 Priority: optional
-Maintainer: maemo integration <integration@maemo.org>
+Maintainer: Eero Tamminen <eero.tamminen@nokia.com>
 Standards-Version: 3.8.0
 Build-Depends: debmake, libx11-dev, libxdamage-dev, libxfixes-dev, libxtst-dev, libxext-dev, libxi-dev, 
   debhelper (>= 4.1.0), pkg-config, autoconf, automake, libglib2.0-dev
