@@ -224,7 +224,6 @@ bool xhandler_init(const char *dpy_name)
 	deviceName = getenv(ENV_POINTER_INPUT_DEVICE);
 	if (!(deviceName && *deviceName))
 		deviceName = default_pointer_device;
-	fprintf(stderr, "Using pointer device: %s (%s)\n", deviceName, default_pointer_device);
 
 	xemu.pointer = xhandler_open_device(devInfo, count, IsXExtensionPointer, deviceName);
 	if (!xemu.pointer.dev) {
