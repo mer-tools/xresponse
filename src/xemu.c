@@ -40,10 +40,9 @@
 #include "xresponse.h"
 
 xemu_t xemu = {
-		.keyboard = NULL,
-		.pointer = NULL,
+		.keyboard = {.dev = NULL, .naxis = 2},
+		.pointer = {.dev = NULL, .naxis = 2},
 		.display = NULL,
-		.pointer_naxes = 2,
 };
 
 // this maps what keysyms need a modifier pushed
@@ -84,8 +83,8 @@ void xemu_init(Display* dpy)
 
 void xemu_fini()
 {
-	if (xemu.keyboard) XCloseDevice(xemu.display, xemu.keyboard);
-	if (xemu.pointer) XCloseDevice(xemu.display, xemu.pointer);
+	if (xemu.keyboard.dev) XCloseDevice(xemu.display, xemu.keyboard.dev);
+	if (xemu.pointer.dev) XCloseDevice(xemu.display, xemu.pointer.dev);
 }
 
 
@@ -95,7 +94,7 @@ void xemu_fini()
  * except the special character 'Tab'. */
 Time xemu_send_string(char *thing_in)
 {
-	if (xemu.keyboard) {
+	if (xemu.keyboard.dev) {
 		KeyCode wrap_key;
 		int i = 0;
 
@@ -126,10 +125,10 @@ Time xemu_send_string(char *thing_in)
 			if (keysym >= MAX_KEYSYM || !keycode) {
 				fprintf(stderr, "Special character '%ls' is currently not supported.\n", wc_singlechar_str);
 			} else {
-				if (wrap_key) scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, wrap_key, True, 0, 0);
-				scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, keycode, True, 0, 0);
-				scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, keycode, False, 0, 0);
-				if (wrap_key) scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, wrap_key, False, 0, 0);
+				if (wrap_key) scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard.dev, wrap_key, True, 0, 0);
+				scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard.dev, keycode, True, 0, 0);
+				scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard.dev, keycode, False, 0, 0);
+				if (wrap_key) scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard.dev, wrap_key, False, 0, 0);
 
 				/* Not flushing after every key like we need to, thanks
 				 * thorsten@staerk.de */
@@ -204,12 +203,12 @@ void xemu_load_keycodes()
 
 Time xemu_send_key(char *thing, unsigned long delay)
 {
-	if (xemu.keyboard) {
+	if (xemu.keyboard.dev) {
 		Time start = xhandler_get_server_time(xemu.display);
 		KeyCode kc = thing_to_keycode(thing);
 
-		scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, kc, True, 0, 0);
-		scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard, kc, False, delay, 0);
+		scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard.dev, kc, True, 0, 0);
+		scheduler_add_event(SCHEDULER_EVENT_KEY, xemu.keyboard.dev, kc, False, delay, 0);
 
 		return start;
 	}
@@ -222,12 +221,12 @@ Time xemu_send_key(char *thing, unsigned long delay)
  */
 Time xemu_button_event(int x, int y, int delay)
 {
-	if (xemu.pointer) {
+	if (xemu.pointer.dev) {
 		Time start = xhandler_get_server_time(xemu.display);
 
-		scheduler_add_event(SCHEDULER_EVENT_MOTION, xemu.pointer, x, y, 0, xemu.pointer_naxes);
-		scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, True, 0, 2);
-		scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, False, delay, 0);
+		scheduler_add_event(SCHEDULER_EVENT_MOTION, xemu.pointer.dev, x, y, 0, xemu.pointer.naxis);
+		scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer.dev, Button1, True, 0, 2);
+		scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer.dev, Button1, False, delay, 0);
 
 		return start;
 	}
@@ -236,16 +235,16 @@ Time xemu_button_event(int x, int y, int delay)
 
 Time xemu_drag_event(int x, int y, int button_state, int delay)
 {
-	if (xemu.pointer) {
+	if (xemu.pointer.dev) {
 		Time start = xhandler_get_server_time(xemu.display);
 
-		scheduler_add_event(SCHEDULER_EVENT_MOTION, xemu.pointer, x, y, delay, xemu.pointer_naxes);
+		scheduler_add_event(SCHEDULER_EVENT_MOTION, xemu.pointer.dev, x, y, delay, xemu.pointer.naxis);
 
 		if (button_state == XR_BUTTON_STATE_PRESS) {
-			scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, True, 0, 2);
+			scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer.dev, Button1, True, 0, 2);
 		}
 		if (button_state == XR_BUTTON_STATE_RELEASE) {
-			scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer, Button1, False, 0, 0);
+			scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer.dev, Button1, False, 0, 0);
 		}
 		return start;
 	}

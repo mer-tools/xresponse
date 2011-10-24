@@ -9,7 +9,7 @@ configure:
 
 config.status: configure
 	dh_testdir
-	./configure --prefix=/usr
+	./configure --prefix=/usr --enable-pointer-device='Atmel mXT Touchscreen'
 
 build: build-stamp
 

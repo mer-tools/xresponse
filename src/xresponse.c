@@ -426,7 +426,7 @@ int main(int argc, char **argv)
 		}
 
 		if (streq("-c", argv[i]) || streq("--click", argv[i])) {
-			if (!xemu.pointer) {
+			if (!xemu.pointer.dev) {
 				fprintf(stderr, "Failed to open pointer device, unable to simulate pointer events.\n");
 				exit(-1);
 			}
@@ -564,7 +564,7 @@ int main(int argc, char **argv)
 		}
 
 		if (streq("-d", argv[i]) || streq("--drag", argv[i])) {
-			if (!xemu.pointer) {
+			if (!xemu.pointer.dev) {
 				fprintf(stderr, "Failed to open pointer device, unable to simulate pointer events.\n");
 				exit(-1);
 			}
@@ -586,7 +586,7 @@ int main(int argc, char **argv)
 		}
 
 		if (streq("-k", argv[i]) || streq("--key", argv[i])) {
-			if (!xemu.keyboard) {
+			if (!xemu.keyboard.dev) {
 				fprintf(stderr, "Failed to open keyboard device, unable to simulate keyboard events.\n");
 				exit(-1);
 			}
@@ -602,7 +602,7 @@ int main(int argc, char **argv)
 		}
 
 		if (streq("-t", argv[i]) || streq("--type", argv[i])) {
-			if (!xemu.keyboard) {
+			if (!xemu.keyboard.dev) {
 				fprintf(stderr, "Failed to open keyboard device, unable to simulate keyboard events.\n");
 				exit(-1);
 			}

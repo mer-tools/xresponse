@@ -23,6 +23,23 @@ if test "x$GCC" = "xyes"; then
         GCC_FLAGS="-g -Wall"
 fi
 
+# allow to specify default pointer device
+AC_ARG_ENABLE(pointer-device,
+  AC_HELP_STRING([--enable-pointer-device=DEVICE],
+    [Set pointer device used to emulate mouse input]),
+  [AC_DEFINE_UNQUOTED(XINPUT_POINTER_DEVICE, "$enableval", [Default xinput pointer device])],
+  [AC_DEFINE_UNQUOTED(XINPUT_POINTER_DEVICE, NULL, [Default xinput pointer device])],
+)
+
+# allow to specify default keyboard device
+AC_ARG_ENABLE(keyboard-device,
+  AC_HELP_STRING([--enable-keyboard-device=DEVICE],
+    [Set keyboard device used to emulate keyboard input]),
+  [AC_DEFINE_UNQUOTED(XINPUT_KEYBOARD_DEVICE, "$enableval", [Default xinput keyboard device])],
+  [AC_DEFINE_UNQUOTED(XINPUT_KEYBOARD_DEVICE, NULL, [Default xinput keyboard device])],
+)
+
+
 AC_CONFIG_FILES([Makefile
 				src/Makefile])
 

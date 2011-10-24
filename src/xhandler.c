@@ -34,6 +34,8 @@
 #include "xemu.h"
 #include "xresponse.h"
 
+#include "config.h"
+
 /* environment variables used for xresponse configuration (optional) */
 #define ENV_POINTER_INPUT_DEVICE     "XRESPONSE_POINTER_INPUT_DEVICE"
 #define ENV_KEYBOARD_INPUT_DEVICE    "XRESPONSE_KEYBOARD_INPUT_DEVICE"
@@ -44,6 +46,9 @@ xhandler_t xhandler = {
 		.timestamp_atom = None,
 		.display = NULL,
 };
+
+static const char* default_pointer_device = XINPUT_POINTER_DEVICE;
+static const char* default_keyboard_device = XINPUT_KEYBOARD_DEVICE;
 
 /* */
 static int xhandler_xerror(Display* dpy, XErrorEvent *e)
@@ -69,6 +74,44 @@ static int xhandler_xerror(Display* dpy, XErrorEvent *e)
 		return 0;
 	}
 	exit(1);
+}
+
+/**
+ * Opens the specified device type/name from the supplied input device list.
+ * @param devInfo   the input device list.
+ * @param count     the number of devices in the list.
+ * @param type      the device type.
+ * @param name      the device name (can be NULL).
+ * @return          the opened xemu_device_t device.
+ */
+static xemu_device_t xhandler_open_device(XDeviceInfo *devInfo, int count, int type, const char* name)
+{
+	xemu_device_t device = {.dev = NULL, .naxis = 2};
+	int i;
+
+	for (i = 0; i < count; i++) {
+		if (devInfo[i].use == type) {
+			if (name == NULL || !strcmp(name, devInfo[i].name)) {
+				device.dev = XOpenDevice(xhandler.display, devInfo[i].id);
+				/* read number of axes supported by pointer devices */
+//				if (type == IsXExtensionPointer)
+				{
+					XAnyClassPtr any = devInfo[i].inputclassinfo;
+					int index = 0;
+					for (index = 0; index < devInfo[i].num_classes; index++) {
+						if (any->class == ValuatorClass) {
+							XValuatorInfo* valuator = (XValuatorInfo*)any;
+							if (device.naxis < valuator->num_axes) device.naxis = valuator->num_axes;
+						}
+						any = (XAnyClassPtr)((char*)any + any->length);
+					}
+					if (device.naxis > XEMU_POINTER_MAX_AXES) device.naxis = XEMU_POINTER_MAX_AXES;
+					break;
+				}
+			}
+		}
+	}
+	return device;
 }
 
 
@@ -139,7 +182,6 @@ bool xhandler_get_xevent_timed(XEvent *event_return, struct timeval *tv)
 }
 
 
-
 bool xhandler_init(const char *dpy_name)
 {
 	int unused;
@@ -180,36 +222,24 @@ bool xhandler_init(const char *dpy_name)
 	 It is possible to manually specify the input device with ENV_POINTER_INPUT_DEVICE and ENV_KEYBOARD_INPUT_DEVICE
 	 environment variables */
 	deviceName = getenv(ENV_POINTER_INPUT_DEVICE);
-	if (deviceName && !*deviceName)
-		deviceName = NULL;
-	for (i = 0; i < count; i++) {
-		if ((deviceName == NULL && devInfo[i].use == IsXExtensionPointer) || (deviceName && !strcmp(deviceName,
-				devInfo[i].name))) {
-			xemu.pointer = XOpenDevice(xhandler.display, devInfo[i].id);
-			/* read number of axes supported by the device */
-			XAnyClassPtr any = devInfo[i].inputclassinfo;
-			int index = 0;
-			for (index = 0; index < devInfo[i].num_classes; index++) {
-				if (any->class == ValuatorClass) {
-					XValuatorInfo* valuator = (XValuatorInfo*)any;
-					if (xemu.pointer_naxes < valuator->num_axes) xemu.pointer_naxes = valuator->num_axes;
-				}
-				any = (XAnyClassPtr)((char*)any + any->length);
-			}
-			if (xemu.pointer_naxes > XEMU_POINTER_MAX_AXES) xemu.pointer_naxes = XEMU_POINTER_MAX_AXES;
-			break;
-		}
+	if (!(deviceName && *deviceName))
+		deviceName = default_pointer_device;
+	fprintf(stderr, "Using pointer device: %s (%s)\n", deviceName, default_pointer_device);
+
+	xemu.pointer = xhandler_open_device(devInfo, count, IsXExtensionPointer, deviceName);
+	if (!xemu.pointer.dev) {
+		fprintf(stderr, "Failed to open default device: %s. Opening the first pointer device\n", deviceName);
+		xemu.pointer = xhandler_open_device(devInfo, count, IsXExtensionPointer, NULL);
 	}
 
 	deviceName = getenv(ENV_KEYBOARD_INPUT_DEVICE);
-	if (deviceName && !*deviceName)
-		deviceName = NULL;
-	for (i = 0; i < count; i++) {
-		if ((deviceName == NULL && devInfo[i].use == IsXExtensionKeyboard) || (deviceName && !strcmp(deviceName,
-				devInfo[i].name))) {
-			xemu.keyboard = XOpenDevice(xhandler.display, devInfo[i].id);
-			break;
-		}
+	if (!(deviceName && *deviceName))
+		deviceName = default_keyboard_device;
+
+	xemu.keyboard = xhandler_open_device(devInfo, count, IsXExtensionKeyboard, deviceName);
+	if (!xemu.pointer.dev) {
+		fprintf(stderr, "Failed to open default device: %s. Opening the first pointer device\n", deviceName);
+		xemu.pointer = xhandler_open_device(devInfo, count, IsXExtensionKeyboard, NULL);
 	}
 	XFreeDeviceList(devInfo);
 	return true;

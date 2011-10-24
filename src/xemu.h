@@ -56,12 +56,15 @@ enum { /* for 'dragging' */
 
 #define XEMU_POINTER_MAX_AXES     6
 
+typedef struct {
+	XDevice* dev;
+	int naxis;
+} xemu_device_t;
 
 typedef struct {
-	XDevice* keyboard;
-	XDevice* pointer;
+	xemu_device_t keyboard;
+	xemu_device_t pointer;
 	Display* display;
-	int pointer_naxes;
 } xemu_t;
 
 extern xemu_t xemu;
