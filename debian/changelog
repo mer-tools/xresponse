@@ -1,3 +1,10 @@
+xresponse (1.2) unstable; urgency=low
+
+  * Fixes: NB#287491 - xresponse commands on gallery application is not
+    working
+
+ -- Tommi Rantala <ext-tommi.1.rantala@nokia.com>  Tue, 25 Oct 2011 08:53:08 +0300
+
 xresponse (1.1.1) unstable; urgency=low
 
   * Fixes: NB#283582 - Emulating mouse click with xresponse does not work for

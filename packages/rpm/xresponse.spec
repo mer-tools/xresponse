@@ -1,5 +1,5 @@
 Name: xresponse
-Version: 1.1.1
+Version: 1.2
 Release: 1%{?dist}
 Summary: x11 debug tool
 Group: Development/Tools

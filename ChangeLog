@@ -1,3 +1,6 @@
+xresponse (1.2), 25 Oct 2011:
+  * Add preconfigurable default emulation device.
+
 xresponse (1.1.1), 23 Sep 2011:
   * Remove event processing before click and key emulation. Fixes xresponse
     getting stuck processing continous stream of damage events for some
