@@ -20,8 +20,7 @@ BuildRequires: autoconf, automake, pkg-config, xorg-x11-devel xorg-x11-libX11-de
 %build
 autoreconf -fvi
 
-%configure 
-make 
+%configure
 
 %install
 rm -rf %{buildroot}
