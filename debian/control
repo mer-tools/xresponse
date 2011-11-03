@@ -3,7 +3,7 @@ Section: x11
 Priority: optional
 Maintainer: Eero Tamminen <eero.tamminen@nokia.com>
 Standards-Version: 3.8.0
-Build-Depends: debmake, libx11-dev, libxdamage-dev, libxfixes-dev, libxtst-dev, libxext-dev, libxi-dev, 
+Build-Depends: debhelper, libx11-dev, libxdamage-dev, libxfixes-dev, libxtst-dev, libxext-dev, libxi-dev, 
   debhelper (>= 4.1.0), pkg-config, autoconf, automake, libglib2.0-dev
 
 Package: xresponse
@@ -13,3 +13,11 @@ Description: x11 debug tool
  xresponse is a simple tool for meassuring UI response times to a full mouse
  click event. It requires the Xtest, to 'fake' the mouse event, and XDamage, to
  report areas of the display that have changed.
+
+Package: xresponse-dbg
+Section: debug
+Architecture: any
+Depends: ${misc:Depends}, xresponse (=${binary:Version})
+Description: Debug symbols xresponse package.
+ This package provides debug symbols for xresponse package.
+ 
