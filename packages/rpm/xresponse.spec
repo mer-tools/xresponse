@@ -6,7 +6,7 @@ Group: Development/Tools
 License: GPLv2+
 URL: http://www.gitorious.org/+maemo-tools-developers/maemo-tools/xresponse
 Source: %{name}_%{version}.tar.gz
-BuildRoot: {_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-build
 BuildRequires: autoconf, automake, pkg-config, xorg-x11-devel xorg-x11-libX11-devel
 
 %description
