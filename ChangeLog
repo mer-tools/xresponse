@@ -29,7 +29,7 @@ xresponse (0.3.2-24), 10 Sep 2010:
 xresponse (0.3.2-23), 15 Oct 2009:
   * Monitor root window by default
 
-xresponse (0.3.2-22), 18 Jun 2009:
+xresponse (0.3.2-22), 28 Sep 2009:
   * Fix drag option failure in browser as it cannot handle pressure events
   * Fix more problems with drag option
   * Fix events reported in wrong order
