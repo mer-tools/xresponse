@@ -17,6 +17,7 @@ Description: x11 debug tool
 Package: xresponse-dbg
 Section: debug
 Architecture: any
+Priority: extra
 Depends: ${misc:Depends}, xresponse (=${binary:Version})
 Description: Debug symbols xresponse package.
  This package provides debug symbols for xresponse package.
