@@ -187,7 +187,7 @@ bool xhandler_init(const char *dpy_name)
 	int unused;
 	int count, i;
 	XDeviceInfo *devInfo;
-	char* deviceName;
+	const char* deviceName;
 
 	if ((xhandler.display = XOpenDisplay(dpy_name)) == NULL) {
 		fprintf(stderr, "Unable to connect to DISPLAY.\n");
