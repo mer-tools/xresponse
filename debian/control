@@ -3,8 +3,9 @@ Section: x11
 Priority: optional
 Maintainer: Eero Tamminen <eero.tamminen@nokia.com>
 Standards-Version: 3.8.0
-Build-Depends: debhelper, libx11-dev, libxdamage-dev, libxfixes-dev, libxtst-dev, libxext-dev, libxi-dev, 
-  debhelper (>= 4.1.0), pkg-config, autoconf, automake, libglib2.0-dev
+Build-Depends: debhelper (>= 5), libx11-dev, libxdamage-dev, libxfixes-dev,
+  libxtst-dev, libxext-dev, libxi-dev, pkg-config, autoconf, automake,
+  libglib2.0-dev
 
 Package: xresponse
 Architecture: any
