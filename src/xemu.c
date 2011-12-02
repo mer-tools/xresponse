@@ -225,7 +225,7 @@ Time xemu_button_event(int x, int y, int delay)
 		Time start = xhandler_get_server_time(xemu.display);
 
 		scheduler_add_event(SCHEDULER_EVENT_MOTION, xemu.pointer.dev, x, y, 0, xemu.pointer.naxis);
-		scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer.dev, Button1, True, 0, 2);
+		scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer.dev, Button1, True, 0, xemu.pointer.naxis);
 		scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer.dev, Button1, False, delay, 0);
 
 		return start;
@@ -241,7 +241,7 @@ Time xemu_drag_event(int x, int y, int button_state, int delay)
 		scheduler_add_event(SCHEDULER_EVENT_MOTION, xemu.pointer.dev, x, y, delay, xemu.pointer.naxis);
 
 		if (button_state == XR_BUTTON_STATE_PRESS) {
-			scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer.dev, Button1, True, 0, 2);
+			scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer.dev, Button1, True, 0, xemu.pointer.naxis);
 		}
 		if (button_state == XR_BUTTON_STATE_RELEASE) {
 			scheduler_add_event(SCHEDULER_EVENT_BUTTON, xemu.pointer.dev, Button1, False, 0, 0);
