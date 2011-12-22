@@ -1,3 +1,10 @@
+xresponse (1.2.1) unstable; urgency=low
+
+  * Fixes: NB#291115 - xresponse requires credentials from X
+  * Fixes: NB#289350 - debug package missing for xresponse
+
+ -- Tommi Rantala <ext-tommi.1.rantala@nokia.com>  Thu, 22 Dec 2011 12:06:12 +0200
+
 xresponse (1.2) unstable; urgency=low
 
   * Fixes: NB#287491 - xresponse commands on gallery application is not

@@ -1,6 +1,6 @@
 AC_PREREQ(2.53)
 
-AC_INIT([xresponse], [1.2], [eero.tamminen@nokia.com])
+AC_INIT([xresponse], [1.2.1], [eero.tamminen@nokia.com])
 AC_CONFIG_SRCDIR([src/xresponse.c])
 
 AM_INIT_AUTOMAKE()
