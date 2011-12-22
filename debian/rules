@@ -62,6 +62,7 @@ binary-arch: build install
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb
+	aegis-deb-util --add-manifest xresponse
 
 binary: binary-indep binary-arch
 

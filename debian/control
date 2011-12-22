@@ -5,7 +5,7 @@ Maintainer: Eero Tamminen <eero.tamminen@nokia.com>
 Standards-Version: 3.9.1
 Build-Depends: debhelper (>= 5), libx11-dev, libxdamage-dev, libxfixes-dev,
   libxtst-dev, libxext-dev, libxi-dev, pkg-config, autoconf, automake,
-  libglib2.0-dev
+  libglib2.0-dev, aegis-builder (>= 1.6)
 
 Package: xresponse
 Architecture: any
