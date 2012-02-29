@@ -1,7 +1,0 @@
-<aegis>
-	<request>
-		<credential name="xserver-security-policy::record-input" />
-		<credential name="xserver-security-policy::playback-input" />
-		<for path="/usr/bin/xresponse" />
-	</request>
-</aegis>
