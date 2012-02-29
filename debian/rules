@@ -1,0 +1,70 @@
+#!/usr/bin/make -f
+# Made with the aid of debmake, by Christoph Lameter,
+# based on the sample debian/rules file for GNU hello by Ian Jackson.
+
+DESTDIR=$(CURDIR)/debian/tmp
+
+package=xresponse
+
+configure:
+	./autogen.sh
+
+config.status: configure
+	dh_testdir
+	./configure --prefix=/usr --enable-pointer-device='Atmel mXT Touchscreen'
+
+build: build-stamp
+
+build-stamp: config.status
+	dh_testdir
+
+  # Add here commands to compile the package.
+	$(MAKE)
+	touch build-stamp
+
+clean:
+	dh_testdir
+	rm -f build
+	rm -f build-stamp
+
+  # Add here commands to clean up after the build process.
+	[ ! -f Makefile ] || $(MAKE) clean
+	[ ! -f Makefile ] || $(MAKE) distclean
+
+	rm -f `find . -name "*~"`
+	rm -rf debian/tmp debian/files* core debian/substvars
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k 
+	dh_installdirs
+
+	# Add here commands to install the package into debian/tmp
+	$(MAKE) DESTDIR=$(DESTDIR) install
+
+
+binary-indep: build install
+
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installchangelogs 
+	dh_installdocs
+	dh_installman
+	dh_install --sourcedir=$(DESTDIR)
+	dh_link
+	dh_strip --dbg-package=xresponse-dbg
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+	aegis-deb-util --add-manifest xresponse
+
+binary: binary-indep binary-arch
+
+
+.PHONY: binary binary-arch binary-indep clean checkroot
