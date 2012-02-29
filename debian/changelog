@@ -1,3 +1,9 @@
+xresponse (1.2.1-1) unstable; urgency=low
+
+  * Fixes: NB#298971 - xresponse requires credentials from X
+
+ -- Tommi Rantala <ext-tommi.1.rantala@nokia.com>  Wed, 29 Feb 2012 12:06:07 +0200
+
 xresponse (1.2.1) unstable; urgency=low
 
   * Fixes: NB#291115 - xresponse requires credentials from X
