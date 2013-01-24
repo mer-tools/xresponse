@@ -1,0 +1,28 @@
+Name: xresponse
+Summary: Tool for synthethizing user X input events
+Version: 1.2.1
+Release: mer1
+Group: Development/Tools/Other
+License: GPL v2
+URL: git://gitorious.org/maemo-tools/xresponse.git
+Sources:
+    - xresponse-%{version}.tar.gz
+Description: |
+ Tool for synthethizing user X input events and for reporting X input
+ and window update events and their timestamps. Either whole X screen
+ and/or individual windows can be tracked.
+
+Requires:
+    - libXdamage
+    - libXi
+    - libXtst
+    - libXext
+PkgConfigBR:
+    - xext
+    - xtst
+    - xdamage
+    - xi
+    - glib-2.0
+    - x11
+Configure: configure
+

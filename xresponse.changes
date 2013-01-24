@@ -1,0 +1,5 @@
+* Thu Jan 24 2013 Philippe De Swert <philippe.deswert@jollamobile.com> - 1.2.1
+- re-package with git-pkg for Mer:Tools
+
+* Fri Aug 10 2012 Marko Nykänen <marko.nykanen@gmail.com> - 1.2.1
+- Fixed bug #394 Package and include xresponse in Tools
